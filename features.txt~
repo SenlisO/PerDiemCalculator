@@ -1,0 +1,18 @@
+features
+------------------
+Input per-diem
+      Able to input baseline per-diem
+      Able to modify each day and carry over that modification to following days
+      Able to change start date of TDY and other days follow the change
+Input transactions
+      Modify transactions
+      Sort transactions
+      Display transactions
+Automatically track date
+      Dislay date
+Present per-diem earned verses spent based on current day
+Give total per-diem spent verses total earned
+Save and load to file
+     Program automatically loads from file currentsave
+     Program saves when user selects "save file"
+     
