@@ -66,6 +66,38 @@ class Bank:
 
         self.transactions = sorted(self.transactions, key=lambda Transaction: Transaction.transaction_date)
 
+    def calculate_total_spent(self):
+        total = 0
+
+        for t in self.transactions:
+            total = total + t.amount
+
+        return total
+
+    def calculate_earned_per_diem(self):
+        total = 0
+
+        # if tdy hasn't started yet, return 0
+        if date.today() < self.begin_date:
+            return 0
+
+        # calculate how many days have transpired
+        time_spent = date.today() - self.begin_date
+        days = time_spent.days # days will be modified, time_spent will not be
+
+        # if the entire tdy has passed, return the total
+        if date.today() >= self.end_date:
+            return self.calculate_per_diem_total()
+
+        # if there is more than one day, add travel per diem
+        if days > 1:
+            total = total + self.travel_per_diem
+            days = days - 1
+
+        total = total + (self.daily_per_diem * days)
+
+        return total
+
 
 class Transaction:
     # Class contains data for individual transactions
@@ -127,41 +159,66 @@ class GUI:
             os.system('clear')
 
     def display_main_menu(self):
-        self.clear_screen()
+        self.message = "" # variable displays a message if not empty
 
-        print("Main Menu")
-        print("------------------------")
-        print("Today's date: %s" % date.today())
-        print("TDY start date: %s" % self.bank.begin_date)
-        print("TDY end date: %s" % self.bank.end_date)
+        # variable continue_program and subsequent loop to continue program
+        continue_program = True
 
-        try:
-            print("TDY duration: %s" % self.bank.calculate_tdy_duration())
-        except InvalidOperationError:
-            print("")
+        while (continue_program):
 
-        print ("-------------------------------")
-        print("Travel Per Diem amount: %s" % '${:,.2f}'.format(self.bank.travel_per_diem))
-        print("Daily Per Diem amount: %s" % '${:,.2f}'.format(self.bank.daily_per_diem))
-        print("Total Per Diem amount: %s" % '${:,.2f}'.format(self.bank.calculate_per_diem_total()))
+            self.clear_screen()
 
-        # display transactions
-        print("-----------------------------------------------------------------")
-        print("# Date,        Name,                             Amount,    Remarks")
+            print("Today's date: %s" % date.today())
+            print("TDY start date: %s" % self.bank.begin_date)
+            print("TDY end date: %s" % self.bank.end_date)
 
-        # todo: function to check display_index is valid
-        # last constant in for loop controls how many records are displayed at once
-        for i in range(self.display_index, self.display_index+5):
-            print("%s:%s   %s    %s     %s" % (i, self.bank.transactions[i].transaction_date,
-                                             '{:<30}'.format(self.bank.transactions[i].name),
-                                             '${:6,.2f}'.format(self.bank.transactions[i].amount),
-                                             self.bank.transactions[i].remarks))
+            try:
+                print("TDY duration: %s" % self.bank.calculate_tdy_duration())
+            except InvalidOperationError:
+                print("")
 
-        # todo: display total spent
-        # todo: display total remaining
-        # todo: display total spent vs earned for current date
+            print ("-------------------------------")
+            print("Travel Per Diem amount: %s" % '${:,.2f}'.format(self.bank.travel_per_diem))
+            print("Daily Per Diem amount: %s" % '${:,.2f}'.format(self.bank.daily_per_diem))
+            print("Total Per Diem amount: %s" % '${:,.2f}'.format(self.bank.calculate_per_diem_total()))
 
-        # todo: a menu
+            # display transactions
+            print("-----------------------------------------------------------------")
+            print("# Date,        Name,                             Amount,    Remarks")
+
+            # todo: function to check display_index is valid
+            # last constant in for loop controls how many records are displayed at once
+            for i in range(self.display_index, self.display_index+5):
+                print("%s:%s   %s    %s     %s" % (i, self.bank.transactions[i].transaction_date,
+                                                 '{:<30}'.format(self.bank.transactions[i].name),
+                                                 '${:6,.2f}'.format(self.bank.transactions[i].amount),
+                                                 self.bank.transactions[i].remarks))
+
+            # display totals
+            print ("----------------------------------------------------------------")
+            print ("Total spent: %s" % '${:,.2f}'.format(self.bank.calculate_total_spent()))
+            print ("Total remaining: %s" % '${:,.2f}'.format(self.bank.calculate_per_diem_total() -
+                                                             self.bank.calculate_total_spent()))
+            print ("Total per diem earned: %s" % '${:,.2f}'.format(self.bank.calculate_earned_per_diem()))
+            print ("Total earned remaining: %s" % '${:,.2f}'.format(self.bank.calculate_earned_per_diem() -
+                                                                    self.bank.calculate_total_spent()))
+            # todo: display total spent vs earned for current date
+
+            # display message if one is stored
+            if not self.message == "":
+                print ("\n" + self.message)
+                self.message = ""
+            else:
+                print ("")
+
+            # time for user input
+            choice = input("Menu: [c]ange dates & Per Diem, [n]ew transaction, [#] modify transaction, page [u]p, "
+                           "page [d]own, [s]ave, [q]uit: ")
+
+            if choice == 'q':
+                continue_program = False
+            else:
+                self.message = "Error: Invalid menu option"
 
     def start_ui(self):
         # usage: begin main program loop
@@ -241,8 +298,6 @@ class GUI:
                 bad_data = True
                 continue
 
-    def main_menu_menu(self):
-        choice = input("Enter [c]ange dates & Per Diem, [n]ew transaction, [#] modify transaction, [s]ave, [q]uit:")
 
 ui = GUI()
 ui.create_test_data()

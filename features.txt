@@ -16,3 +16,7 @@ Save and load to file
      Program automatically loads from file currenttrip
      Program saves when user selects "save file"
      
+Features for future versions
+--------------------
+Colored text
+GUI
