@@ -123,6 +123,24 @@ class GUI:
     def __init__(self):
         self.bank = Bank()  # variable is used for all interaction with Bank class
         self.display_index = 0
+        self.max_num_transactions_display = 20
+
+    # this method checks a display index and corrects for out of bounds issues
+    def correct_display_index(self, display_index):
+        if display_index < 0:
+            return 0
+
+        # this is the case where display_index is too high
+        elif display_index > (len(self.bank.transactions) - self.max_num_transactions_display - 1):
+            temp = len(self.bank.transactions) - self.max_num_transactions_display - 1
+            # case that correction causes a negative display index
+            if temp < 0:
+                return 0
+            else:
+                return temp
+
+        # if display_index is good to go
+        return display_index
 
     def create_test_data(self):
         # usage: create test data for debugging
@@ -140,7 +158,6 @@ class GUI:
             self.bank.add_transaction("Some more burgarz", date(2016, 8, 16), 11.5, "Lunch")
             self.bank.add_transaction("Forgot these burgerz", date(2016, 8, 15), 6.75, "More Lunches")
             self.bank.add_transaction("More stuff to eat", date(2016, 8, 16), 10.75, "Lunchenator")
-            self.bank.add_transaction("Marriott Sunset", date(2016, 8, 16), 112.68, "Hotel stay")
             self.bank.add_transaction("Marriott little dipper", date(2016, 8, 17), 95.12, "Hotel super")
             self.bank.add_transaction("Marriott bigger lipper", date(2016, 8, 18), 97.00, "Hotel duper")
 
@@ -188,7 +205,10 @@ class GUI:
 
             # todo: function to check display_index is valid
             # last constant in for loop controls how many records are displayed at once
-            for i in range(self.display_index, self.display_index+5):
+            for i in range(self.display_index, self.display_index + self.max_num_transactions_display):
+                # this statement only true with databases w/ less than self.max_num_transactions_display transactions
+                if i >= len(self.bank.transactions):
+                    break
                 print("%s:%s   %s    %s     %s" % (i, self.bank.transactions[i].transaction_date,
                                                  '{:<30}'.format(self.bank.transactions[i].name),
                                                  '${:6,.2f}'.format(self.bank.transactions[i].amount),
@@ -202,7 +222,7 @@ class GUI:
             print ("Total per diem earned: %s" % '${:,.2f}'.format(self.bank.calculate_earned_per_diem()))
             print ("Total earned remaining: %s" % '${:,.2f}'.format(self.bank.calculate_earned_per_diem() -
                                                                     self.bank.calculate_total_spent()))
-            # todo: display total spent vs earned for current date
+
 
             # display message if one is stored
             if not self.message == "":
@@ -215,8 +235,22 @@ class GUI:
             choice = input("Menu: [c]ange dates & Per Diem, [n]ew transaction, [#] modify transaction, page [u]p, "
                            "page [d]own, [s]ave, [q]uit: ")
 
+            # user chooses to quit program
             if choice == 'q':
                 continue_program = False
+
+            # user chooses to change per diem data
+            elif choice == 'c':
+                self.enter_per_diem_data()
+
+            # user chooses to page up
+            elif choice == 'u':
+                self.display_index = self.correct_display_index(self.display_index + self.max_num_transactions_display)
+
+            # user chooses to page down
+            elif choice == 'd':
+                self.display_index = self.correct_display_index(self.display_index - self.max_num_transactions_display)
+
             else:
                 self.message = "Error: Invalid menu option"
 
