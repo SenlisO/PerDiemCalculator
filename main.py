@@ -164,12 +164,10 @@ class GUI:
         except InvalidOperationError as e:
             print(e.message)
 
-        # todo: create full test data
 
     @staticmethod
     def clear_screen():
         # usage: function clears the screen, built cross platform
-        # todo: fix clear screen function
         if os.name == 'nt':
             os.system('cls')
         else:
@@ -203,7 +201,7 @@ class GUI:
             print("-----------------------------------------------------------------")
             print("# Date,        Name,                             Amount,    Remarks")
 
-            # todo: function to check display_index is valid
+
             # last constant in for loop controls how many records are displayed at once
             for i in range(self.display_index, self.display_index + self.max_num_transactions_display):
                 # this statement only true with databases w/ less than self.max_num_transactions_display transactions
@@ -243,6 +241,10 @@ class GUI:
             elif choice == 'c':
                 self.enter_per_diem_data()
 
+            # user chooses to create a new transaction
+            elif choice == 'n':
+                self.enter_new_transaction()
+
             # user chooses to page up
             elif choice == 'u':
                 self.display_index = self.correct_display_index(self.display_index + self.max_num_transactions_display)
@@ -266,6 +268,8 @@ class GUI:
         self.display_main_menu()
 
     def enter_per_diem_data(self):
+        # todo: fix function so an error doesn't start entire loop again
+
         self.clear_screen()
         bad_data = True
         while (bad_data):
@@ -331,6 +335,48 @@ class GUI:
                 print(e.message)
                 bad_data = True
                 continue
+
+    def enter_new_transaction(self):
+        self.clear_screen()
+        bad_data = True
+
+        # receive date data
+        while(bad_data):
+            bad_data = False
+            try:
+                transaction_date_year = int(input("Enter transaction date year: "))
+                transaction_date_month = int(input("Enter transaction date month: "))
+                transaction_date_day = int(input("Enter transaction date day:"))
+            except ValueError:
+                self.clear_screen()
+                bad_data = True
+                print("Enter integers for date values")
+                continue
+
+            try:
+                transaction_date = date(transaction_date_year, transaction_date_month, transaction_date_day)
+            except ValueError:
+                self.clear_screen()
+                bad_data = True
+                print("Enter a valid date")
+
+        # receive transaction name
+        transaction_name = input("Enter transaction name: ")
+
+        # receive transaction amount
+        bad_data = True
+        while(bad_data):
+            bad_data = False
+            try:
+                transaction_amount = float(input("Enter transaction amount: "))
+            except ValueError:
+                self.clear_screen()
+                bad_data = True
+                print("Enter a valid dollar amount")
+
+        # enter transaction remarks
+
+        # todo: finish this function
 
 
 ui = GUI()
