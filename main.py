@@ -16,6 +16,68 @@ class Bank:
         self.daily_per_diem = 0  # per diem for normal days
         self.transactions = []
 
+    def load_data(self):
+        # function loads data from file ledger.txt
+        # todo: finish loading function
+        # todo: incorporate "file not found" logic
+        # todo: incorporate error checking
+        file = open("ledger.txt", "r")
+
+        # read begin date from file
+        temp = file.readline()
+        begin_date = date(int(temp[0:4]), int(temp[4:6]), int(temp[6:]))
+
+        # read end tate from file
+        temp = file.readline()
+        end_date = date(int(temp[0:4]), int(temp[4:6]), int(temp[6:]))
+        travel_per_diem = float(file.readline())
+        daily_per_diem = float(file.readline())
+
+        self.set_per_diem_data(begin_date, end_date, travel_per_diem, daily_per_diem)
+
+        while (True):
+            name = file.readline()
+
+            # check if the file is at the end
+            if name == "EndOfFile":
+                break
+
+            # read transaction date
+            temp = file.readline()
+            transaction_date = date(int(temp[0:4]), int(temp[4:6]), int(temp[6:]))
+            amount = float(file.readline())
+            remarks = file.readline()
+
+            self.add_transaction(name, transaction_date, amount, remarks)
+
+        file.close()
+
+    def save_data(self):
+        # function saves data to file ledger.txt
+        # todo: incorporate error checking functionality
+        file = open("ledger.txt", "w")
+
+        file.write(self.begin_date.strftime("%Y%m%d") + "\n")
+        file.write(self.end_date.strftime("%Y%m%d") + "\n")
+        file.write(str(self.travel_per_diem) + "\n")
+        file.write(str(self.daily_per_diem) + "\n")
+
+        i = 0
+        while(True):
+            if i >= len(self.transactions):
+                break
+
+            file.write(self.transactions[i].name + "\n")
+            file.write(str(self.transactions[i].transaction_date.strftime("%Y%m%d")) + "\n")
+            file.write(str(self.transactions[i].amount) + "\n")
+            file.write(str(self.transactions[i].remarks) + "\n")
+
+            i = i + 1
+
+        file.write("EndOfFile")
+        file.close()
+
+
     def set_per_diem_data(self, begin_date, end_date, travel_per_diem, daily_per_diem):
         # sanitize date values
         if not isinstance(begin_date, date) or not isinstance(end_date, date):
@@ -231,7 +293,7 @@ class GUI:
 
             # time for user input
             choice = input("Menu: [c]ange dates & Per Diem, [n]ew transaction, [#] modify transaction, page [u]p, "
-                           "page [d]own, [s]ave, [q]uit: ")
+                           "page [d]own, [s]ave, [l]oad, [q]uit: ")
 
             # user chooses to quit program
             if choice == 'q':
@@ -253,12 +315,21 @@ class GUI:
             elif choice == 'd':
                 self.display_index = self.correct_display_index(self.display_index - self.max_num_transactions_display)
 
+            # user chooses to save
+            elif choice == 's':
+                self.bank.save_data()
+
+            # user chooses to load
+            elif choice == 'l':
+                self.bank.load_data()
+
             else:
                 self.message = "Error: Invalid menu option"
 
     def start_ui(self):
         # usage: begin main program loop
         # todo: load files
+        self.bank.load_data()
 
         # first, see if any files were loaded
         if not self.bank.is_initialized():
@@ -380,5 +451,5 @@ class GUI:
 
 
 ui = GUI()
-ui.create_test_data()
+#ui.create_test_data()
 ui.start_ui()
