@@ -5,6 +5,7 @@ TESTDATA = False # default:False -- if true, test data is loaded
 LOADDATA = True # default: True -- if false, file loading is disabled
 
 # todo: properly comment all code
+# todo: straighten up display of remarks
 
 class InvalidOperationError(Exception):  # exception class
     def __init__(self, message):
