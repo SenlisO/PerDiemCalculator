@@ -1,6 +1,10 @@
 import os
 from datetime import date, timedelta
 
+TESTDATA = False # default:False -- if true, test data is loaded
+LOADDATA = True # default: True -- if false, file loading is disabled
+
+# todo: properly comment all code
 
 class InvalidOperationError(Exception):  # exception class
     def __init__(self, message):
@@ -21,36 +25,56 @@ class Bank:
         # todo: finish loading function
         # todo: incorporate "file not found" logic
         # todo: incorporate error checking
-        file = open("ledger.txt", "r")
+        file = open("ledger.txt", "r") # opens file in read only mode
 
-        # read begin date from file
-        temp = file.readline()
+        file_data = [] # this is the array we will read all data into
+
+        # now, we will read all data from the file
+        for line in file:
+            file_data.append(line)
+
+        file.close() # we no longer need the file open
+
+        # todo: can each of these pairs of commands be consolidated into one
+        # store begin_date from file_data
+        temp = file_data[0]
         begin_date = date(int(temp[0:4]), int(temp[4:6]), int(temp[6:]))
 
-        # read end tate from file
-        temp = file.readline()
+        # store end_date from file_data
+        temp = file_data[1]
         end_date = date(int(temp[0:4]), int(temp[4:6]), int(temp[6:]))
-        travel_per_diem = float(file.readline())
-        daily_per_diem = float(file.readline())
 
+        # store both per diem values
+        travel_per_diem = float(file_data[2])
+        daily_per_diem = float(file_data[3])
+
+        # plug all read data into instance bank object
         self.set_per_diem_data(begin_date, end_date, travel_per_diem, daily_per_diem)
 
-        while (True):
-            name = file.readline()
+        i = 4 # index number,starts after previous reads are done
+        while (i + 4 < len(file_data)): # continue until file_data is out of records
+            # store next transaction's name and increment index
+            name = file_data[i]
+            name = name[:-1] # this cuts off the newline character
+            i = i + 1
 
-            # check if the file is at the end
-            if name == "EndOfFile":
-                break
-
-            # read transaction date
-            temp = file.readline()
+            # store transaction date and increment index
+            temp = file_data[i]
             transaction_date = date(int(temp[0:4]), int(temp[4:6]), int(temp[6:]))
-            amount = float(file.readline())
-            remarks = file.readline()
+            i = i + 1
 
+            # store transaction amount and increment index
+            amount = float(file_data[i])
+            i = i + 1
+
+            # store transaction remarks and increment index
+            remarks = file_data[i]
+            remarks = remarks[:-1] # this cuts off the newline character
+            i = i + 1
+
+            # add full transaction to the bank's transaction stack
             self.add_transaction(name, transaction_date, amount, remarks)
 
-        file.close()
 
     def save_data(self):
         # function saves data to file ledger.txt
@@ -74,7 +98,6 @@ class Bank:
 
             i = i + 1
 
-        file.write("EndOfFile")
         file.close()
 
 
@@ -329,7 +352,9 @@ class GUI:
     def start_ui(self):
         # usage: begin main program loop
         # todo: load files
-        self.bank.load_data()
+
+        if LOADDATA: # controlled by global variable
+            self.bank.load_data()
 
         # first, see if any files were loaded
         if not self.bank.is_initialized():
@@ -451,5 +476,8 @@ class GUI:
 
 
 ui = GUI()
-#ui.create_test_data()
+
+if TESTDATA:  # controlled by global variable
+    ui.create_test_data()
+
 ui.start_ui()
