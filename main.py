@@ -4,8 +4,35 @@ from datetime import date, timedelta
 TESTDATA = False # default:False -- if true, test data is loaded
 LOADDATA = True # default: True -- if false, file loading is disabled
 
-# todo: properly comment all code
-# todo: straighten up display of remarks
+# todo: better display of TDY duration
+# todo: implement modify transaction logic
+# todo: test page up and down
+
+'''
+Plans for future versions
+
+V1.0 -- All basic functions working.  All code properly commented and data is tested in all functions for integrity
+
+Multi-platform -- runs as standalone executable/script
+Future plans page -- make this data available from within program
+Clean code -- optimize code to run faster and cleaner.  Fix all notifications on editors bar
+Comment code -- comment all code for readability
+Harden code -- implement input and parameter sanitation for all functions
+Loading functionality -- user chooses when to load at beginning of program and can load while running
+Intro message -- displays program name, author and version number
+Streamline console -- More creative ways to display data and receive inputs
+Non-calculated transactions -- transactions that add to total, but not to remaining per diem
+    Useful in calculating how much was spent overall
+Complex Per Diem amounts -- add optional flight and lodging per diem amounts
+Partial payments -- add tracker for partial DTS disbursements and total remaining uncompensated amount
+Multiple files -- Able to interact with multiple ledgers, saving and loading to them at will
+Complex settings -- able to change display and functional behavior and carry over between running
+Automatic backup -- When saving to a file, automatically keeps a number of copies defined in settings file
+GUI -- change terminal behavior into buttons, labels, menus, etc
+Mobile functionality -- migrate desktop GUI into Android and iOS and maintain in concert with desktop
+Dropbox integration -- able to sync between devices by storing files in dropbox
+
+'''
 
 class InvalidOperationError(Exception):  # exception class
     def __init__(self, message):
@@ -23,10 +50,10 @@ class Bank:
 
     def load_data(self):
         # function loads data from file ledger.txt
-        # todo: finish loading function
-        # todo: incorporate "file not found" logic
-        # todo: incorporate error checking
-        file = open("ledger.txt", "r") # opens file in read only mode
+        try:
+            file = open("ledger.txt", "r") # opens file in read only mode
+        except OSError:
+            raise InvalidOperationError("Ledger.txt not found")
 
         file_data = [] # this is the array we will read all data into
 
@@ -36,7 +63,6 @@ class Bank:
 
         file.close() # we no longer need the file open
 
-        # todo: can each of these pairs of commands be consolidated into one
         # store begin_date from file_data
         temp = file_data[0]
         begin_date = date(int(temp[0:4]), int(temp[4:6]), int(temp[6:]))
@@ -76,10 +102,8 @@ class Bank:
             # add full transaction to the bank's transaction stack
             self.add_transaction(name, transaction_date, amount, remarks)
 
-
     def save_data(self):
         # function saves data to file ledger.txt
-        # todo: incorporate error checking functionality
         file = open("ledger.txt", "w")
 
         file.write(self.begin_date.strftime("%Y%m%d") + "\n")
@@ -100,7 +124,6 @@ class Bank:
             i = i + 1
 
         file.close()
-
 
     def set_per_diem_data(self, begin_date, end_date, travel_per_diem, daily_per_diem):
         # sanitize date values
@@ -285,7 +308,7 @@ class GUI:
 
             # display transactions
             print("-----------------------------------------------------------------")
-            print("# Date,        Name,                             Amount,    Remarks")
+            print("# Date,        Name,                             Amount,     Remarks")
 
 
             # last constant in for loop controls how many records are displayed at once
@@ -293,7 +316,7 @@ class GUI:
                 # this statement only true with databases w/ less than self.max_num_transactions_display transactions
                 if i >= len(self.bank.transactions):
                     break
-                print("%s:%s   %s    %s     %s" % (i, self.bank.transactions[i].transaction_date,
+                print("%s:%s   %s    %s     %s" % ('{:<2}'.format(i), self.bank.transactions[i].transaction_date,
                                                  '{:<30}'.format(self.bank.transactions[i].name),
                                                  '${:6,.2f}'.format(self.bank.transactions[i].amount),
                                                  self.bank.transactions[i].remarks))
@@ -317,7 +340,7 @@ class GUI:
 
             # time for user input
             choice = input("Menu: [c]ange dates & Per Diem, [n]ew transaction, [#] modify transaction, page [u]p, "
-                           "page [d]own, [s]ave, [l]oad, [q]uit: ")
+                           "page [d]own, [s]ave, [q]uit: ")
 
             # user chooses to quit program
             if choice == 'q':
@@ -343,19 +366,18 @@ class GUI:
             elif choice == 's':
                 self.bank.save_data()
 
-            # user chooses to load
-            elif choice == 'l':
-                self.bank.load_data()
-
             else:
                 self.message = "Error: Invalid menu option"
 
     def start_ui(self):
         # usage: begin main program loop
-        # todo: load files
 
         if LOADDATA: # controlled by global variable
-            self.bank.load_data()
+            try:
+                self.bank.load_data()
+            except InvalidOperationError as e: # exception is raised when file is not found
+                print("")
+
 
         # first, see if any files were loaded
         if not self.bank.is_initialized():
@@ -473,7 +495,7 @@ class GUI:
 
         # enter transaction remarks
 
-        # todo: finish this function
+        # todo: finish new transaction function
 
 
 ui = GUI()
