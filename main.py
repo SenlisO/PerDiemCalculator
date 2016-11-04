@@ -5,8 +5,8 @@ TESTDATA = False # default:False -- if true, test data is loaded
 LOADDATA = True # default: True -- if false, file loading is disabled
 
 # todo: better display of TDY duration
-# todo: implement modify transaction logic
 # todo: test page up and down
+# todo: check loading error when adding last transaction to end of document
 # This is a test
 '''
 Plans for future versions
@@ -207,6 +207,15 @@ class Bank:
 
         return total
 
+    def modify_transaction(self, transaction_number, name, transaction_date, amount, remarks):
+        if len(self.transactions) <= transaction_number:
+            raise InvalidOperationError("transaction number out of range")
+
+        #remove transaction with indicated transaction number
+        self.transactions.remove(self.transactions[transaction_number - 1])
+
+        #use bank's own add_transaction function to add transaction
+        self.add_transaction(name, transaction_date, amount, remarks)
 
 class Transaction:
     # Class contains data for individual transactions
@@ -316,7 +325,7 @@ class GUI:
                 # this statement only true with databases w/ less than self.max_num_transactions_display transactions
                 if i >= len(self.bank.transactions):
                     break
-                print("%s:%s   %s    %s     %s" % ('{:<2}'.format(i), self.bank.transactions[i].transaction_date,
+                print("%s:%s   %s    %s     %s" % ('{:<2}'.format(i+1), self.bank.transactions[i].transaction_date,
                                                  '{:<30}'.format(self.bank.transactions[i].name),
                                                  '${:6,.2f}'.format(self.bank.transactions[i].amount),
                                                  self.bank.transactions[i].remarks))
@@ -367,7 +376,14 @@ class GUI:
                 self.bank.save_data()
 
             else:
-                self.message = "Error: Invalid menu option"
+                # user chooses to modify transaction
+                try:
+                    transaction_number = int(choice)
+                    self.modify_transaction_menu(transaction_number)
+                except ValueError as e:
+                    # the last possibility is that the user entered an invalid choice
+                    self.message = "Error: Invalid menu option"
+
 
     def start_ui(self):
         # usage: begin main program loop
@@ -494,9 +510,59 @@ class GUI:
                 print("Enter a valid dollar amount")
 
         # enter transaction remarks
+        transaction_remarks = input("Enter transaction remarks: ")
 
-        # todo: finish new transaction function
+        try:
+            self.bank.add_transaction(transaction_name, transaction_date, transaction_amount, transaction_remarks)
+        except InvalidOperationError as e:
+            print (e.message)
 
+
+    def modify_transaction_menu(self, transaction_number):
+        self.clear_screen()
+        bad_data = True
+
+        # receive date data
+        while (bad_data):
+            bad_data = False
+            try:
+                transaction_date_year = int(input("Enter transaction date year: "))
+                transaction_date_month = int(input("Enter transaction date month: "))
+                transaction_date_day = int(input("Enter transaction date day:"))
+            except ValueError:
+                self.clear_screen()
+                bad_data = True
+                print("Enter integers for date values")
+                continue
+
+            try:
+                transaction_date = date(transaction_date_year, transaction_date_month, transaction_date_day)
+            except ValueError:
+                self.clear_screen()
+                bad_data = True
+                print("Enter a valid date")
+
+        # receive transaction name
+        transaction_name = input("Enter transaction name: ")
+
+        # receive transaction amount
+        bad_data = True
+        while (bad_data):
+            bad_data = False
+            try:
+                transaction_amount = float(input("Enter transaction amount: "))
+            except ValueError:
+                self.clear_screen()
+                bad_data = True
+                print("Enter a valid dollar amount")
+
+        # enter transaction remarks
+        transaction_remarks = input("Enter transaction remarks: ")
+
+        try:
+            self.bank.modify_transaction(transaction_number, transaction_name, transaction_date, transaction_amount, transaction_remarks)
+        except InvalidOperationError as e:
+            print(e.message)
 
 ui = GUI()
 
