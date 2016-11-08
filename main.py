@@ -1,18 +1,21 @@
 import os
 from datetime import date, timedelta
 
-TESTDATA = False # default:False -- if true, test data is loaded
-LOADDATA = True # default: True -- if false, file loading is disabled
+TESTDATA = False  # default:False -- if true, test data is loaded
+LOADDATA = True  # default: True -- if false, file loading is disabled
 
 # todo: better display of TDY duration
 # todo: test page up and down
-# todo: check loading error when adding last transaction to end of document
 # This is a test
 '''
-Plans for future versions
+Per Diem Calculator Beta
+By Richard Romick
 
-V1.0 -- All basic functions working.  All code properly commented and data is tested in all functions for integrity
+Version history
+V1.0 (TBD) -- All basic functions working.  All code properly commented and
+    data is tested in all functions for integrity
 
+Future features
 Multi-platform -- runs as standalone executable/script
 Future plans page -- make this data available from within program
 Clean code -- optimize code to run faster and cleaner.  Fix all notifications on editors bar
@@ -34,6 +37,7 @@ Dropbox integration -- able to sync between devices by storing files in dropbox
 
 '''
 
+
 class InvalidOperationError(Exception):  # exception class
     def __init__(self, message):
         self.message = message
@@ -51,17 +55,17 @@ class Bank:
     def load_data(self):
         # function loads data from file ledger.txt
         try:
-            file = open("ledger.txt", "r") # opens file in read only mode
+            file = open("ledger.txt", "r")  # opens file in read only mode
         except OSError:
             raise InvalidOperationError("Ledger.txt not found")
 
-        file_data = [] # this is the array we will read all data into
+        file_data = []  # this is the array we will read all data into
 
         # now, we will read all data from the file
         for line in file:
             file_data.append(line)
 
-        file.close() # we no longer need the file open
+        file.close()  # we no longer need the file open
 
         # store begin_date from file_data
         temp = file_data[0]
@@ -78,26 +82,26 @@ class Bank:
         # plug all read data into instance bank object
         self.set_per_diem_data(begin_date, end_date, travel_per_diem, daily_per_diem)
 
-        i = 4 # index number,starts after previous reads are done
-        while (i + 4 < len(file_data)): # continue until file_data is out of records
+        i = 4  # index number,starts after previous reads are done
+        while i + 4 <= len(file_data):  # continue until file_data is out of records
             # store next transaction's name and increment index
             name = file_data[i]
-            name = name[:-1] # this cuts off the newline character
-            i = i + 1
+            name = name[:-1]  # this cuts off the newline character
+            i += 1
 
             # store transaction date and increment index
             temp = file_data[i]
             transaction_date = date(int(temp[0:4]), int(temp[4:6]), int(temp[6:]))
-            i = i + 1
+            i += 1
 
             # store transaction amount and increment index
             amount = float(file_data[i])
-            i = i + 1
+            i += 1
 
             # store transaction remarks and increment index
             remarks = file_data[i]
-            remarks = remarks[:-1] # this cuts off the newline character
-            i = i + 1
+            remarks = remarks[:-1]  # this cuts off the newline character
+            i += 1
 
             # add full transaction to the bank's transaction stack
             self.add_transaction(name, transaction_date, amount, remarks)
@@ -112,7 +116,7 @@ class Bank:
         file.write(str(self.daily_per_diem) + "\n")
 
         i = 0
-        while(True):
+        while True:
             if i >= len(self.transactions):
                 break
 
@@ -121,7 +125,7 @@ class Bank:
             file.write(str(self.transactions[i].amount) + "\n")
             file.write(str(self.transactions[i].remarks) + "\n")
 
-            i = i + 1
+            i += 1
 
         file.close()
 
@@ -192,7 +196,7 @@ class Bank:
 
         # calculate how many days have transpired
         time_spent = date.today() - self.begin_date
-        days = time_spent.days # days will be modified, time_spent will not be
+        days = time_spent.days  # days will be modified, time_spent will not be
 
         # if the entire tdy has passed, return the total
         if date.today() >= self.end_date:
@@ -200,10 +204,10 @@ class Bank:
 
         # if there is more than one day, add travel per diem
         if days > 1:
-            total = total + self.travel_per_diem
-            days = days - 1
+            total += self.travel_per_diem
+            days -= 1
 
-        total = total + (self.daily_per_diem * days)
+        total += (self.daily_per_diem * days)
 
         return total
 
@@ -211,11 +215,12 @@ class Bank:
         if len(self.transactions) <= transaction_number:
             raise InvalidOperationError("transaction number out of range")
 
-        #remove transaction with indicated transaction number
+        # remove transaction with indicated transaction number
         self.transactions.remove(self.transactions[transaction_number - 1])
 
-        #use bank's own add_transaction function to add transaction
+        # use bank's own add_transaction function to add transaction
         self.add_transaction(name, transaction_date, amount, remarks)
+
 
 class Transaction:
     # Class contains data for individual transactions
@@ -282,7 +287,6 @@ class GUI:
         except InvalidOperationError as e:
             print(e.message)
 
-
     @staticmethod
     def clear_screen():
         # usage: function clears the screen, built cross platform
@@ -292,14 +296,19 @@ class GUI:
             os.system('clear')
 
     def display_main_menu(self):
-        self.message = "" # variable displays a message if not empty
+        self.message = ""  # variable displays a message if not empty
 
         # variable continue_program and subsequent loop to continue program
         continue_program = True
 
-        while (continue_program):
+        while continue_program:
 
             self.clear_screen()
+
+            print("_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_")
+            print("|                    Per Diem Calculator Beta                   |")
+            print("|                       By Richard Romick                       |")
+            print("-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-")
 
             print("Today's date: %s" % date.today())
             print("TDY start date: %s" % self.bank.begin_date)
@@ -310,7 +319,7 @@ class GUI:
             except InvalidOperationError:
                 print("")
 
-            print ("-------------------------------")
+            print("-------------------------------")
             print("Travel Per Diem amount: %s" % '${:,.2f}'.format(self.bank.travel_per_diem))
             print("Daily Per Diem amount: %s" % '${:,.2f}'.format(self.bank.daily_per_diem))
             print("Total Per Diem amount: %s" % '${:,.2f}'.format(self.bank.calculate_per_diem_total()))
@@ -319,24 +328,23 @@ class GUI:
             print("-----------------------------------------------------------------")
             print("# Date,        Name,                             Amount,     Remarks")
 
-
             # last constant in for loop controls how many records are displayed at once
             for i in range(self.display_index, self.display_index + self.max_num_transactions_display):
                 # this statement only true with databases w/ less than self.max_num_transactions_display transactions
                 if i >= len(self.bank.transactions):
                     break
                 print("%s:%s   %s    %s     %s" % ('{:<2}'.format(i+1), self.bank.transactions[i].transaction_date,
-                                                 '{:<30}'.format(self.bank.transactions[i].name),
-                                                 '${:6,.2f}'.format(self.bank.transactions[i].amount),
-                                                 self.bank.transactions[i].remarks))
+                                                '{:<30}'.format(self.bank.transactions[i].name),
+                                                '${:6,.2f}'.format(self.bank.transactions[i].amount),
+                                                self.bank.transactions[i].remarks))
 
             # display totals
-            print ("----------------------------------------------------------------")
-            print ("Total spent: %s" % '${:,.2f}'.format(self.bank.calculate_total_spent()))
-            print ("Total remaining: %s" % '${:,.2f}'.format(self.bank.calculate_per_diem_total() -
-                                                             self.bank.calculate_total_spent()))
-            print ("Total per diem earned: %s" % '${:,.2f}'.format(self.bank.calculate_earned_per_diem()))
-            print ("Total earned remaining: %s" % '${:,.2f}'.format(self.bank.calculate_earned_per_diem() -
+            print("----------------------------------------------------------------")
+            print("Total spent: %s" % '${:,.2f}'.format(self.bank.calculate_total_spent()))
+            print("Total remaining: %s" % '${:,.2f}'.format(self.bank.calculate_per_diem_total() -
+                                                self.bank.calculate_total_spent()))
+            print("Total per diem earned: %s" % '${:,.2f}'.format(self.bank.calculate_earned_per_diem()))
+            print("Total earned remaining: %s" % '${:,.2f}'.format(self.bank.calculate_earned_per_diem() -
                                                                     self.bank.calculate_total_spent()))
 
 
@@ -384,14 +392,13 @@ class GUI:
                     # the last possibility is that the user entered an invalid choice
                     self.message = "Error: Invalid menu option"
 
-
     def start_ui(self):
         # usage: begin main program loop
 
-        if LOADDATA: # controlled by global variable
+        if LOADDATA:  # controlled by global variable
             try:
                 self.bank.load_data()
-            except InvalidOperationError as e: # exception is raised when file is not found
+            except InvalidOperationError:  # exception is raised when file is not found
                 print("")
 
 
@@ -407,7 +414,7 @@ class GUI:
 
         self.clear_screen()
         bad_data = True
-        while (bad_data):
+        while bad_data:
             bad_data = False
             print("Beginning date data")
             try:
@@ -417,7 +424,7 @@ class GUI:
             except ValueError:
                 self.clear_screen()
                 print("Enter integers for date values")
-                bad_data=True
+                bad_data = True
                 continue
 
             try:
@@ -474,9 +481,11 @@ class GUI:
     def enter_new_transaction(self):
         self.clear_screen()
         bad_data = True
+        transaction_amount = 0
+        transaction_date = (0, 0, 0)
 
         # receive date data
-        while(bad_data):
+        while bad_data:
             bad_data = False
             try:
                 transaction_date_year = int(input("Enter transaction date year: "))
@@ -500,7 +509,7 @@ class GUI:
 
         # receive transaction amount
         bad_data = True
-        while(bad_data):
+        while bad_data:
             bad_data = False
             try:
                 transaction_amount = float(input("Enter transaction amount: "))
@@ -515,15 +524,16 @@ class GUI:
         try:
             self.bank.add_transaction(transaction_name, transaction_date, transaction_amount, transaction_remarks)
         except InvalidOperationError as e:
-            print (e.message)
-
+            print(e.message)
 
     def modify_transaction_menu(self, transaction_number):
         self.clear_screen()
         bad_data = True
+        transaction_amount = 0
+        transaction_date = date(0, 0, 0)
 
         # receive date data
-        while (bad_data):
+        while bad_data:
             bad_data = False
             try:
                 transaction_date_year = int(input("Enter transaction date year: "))
@@ -541,13 +551,14 @@ class GUI:
                 self.clear_screen()
                 bad_data = True
                 print("Enter a valid date")
+                continue
 
         # receive transaction name
         transaction_name = input("Enter transaction name: ")
 
         # receive transaction amount
         bad_data = True
-        while (bad_data):
+        while bad_data:
             bad_data = False
             try:
                 transaction_amount = float(input("Enter transaction amount: "))
@@ -555,12 +566,14 @@ class GUI:
                 self.clear_screen()
                 bad_data = True
                 print("Enter a valid dollar amount")
+                continue
 
         # enter transaction remarks
         transaction_remarks = input("Enter transaction remarks: ")
 
         try:
-            self.bank.modify_transaction(transaction_number, transaction_name, transaction_date, transaction_amount, transaction_remarks)
+            self.bank.modify_transaction(transaction_number, transaction_name, transaction_date,
+                                         transaction_amount, transaction_remarks)
         except InvalidOperationError as e:
             print(e.message)
 
