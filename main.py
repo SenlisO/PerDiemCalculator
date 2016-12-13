@@ -530,7 +530,7 @@ class GUI:
         self.clear_screen()
         bad_data = True
         transaction_amount = 0
-        transaction_date = date(0, 0, 0)
+        transaction_date = date(1950, 1, 1)
 
         # receive date data
         while bad_data:
