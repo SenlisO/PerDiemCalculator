@@ -4,9 +4,10 @@ from datetime import date, timedelta
 TESTDATA = False  # default:False -- if true, test data is loaded
 LOADDATA = True  # default: True -- if false, file loading is disabled
 
-# todo: better display of TDY duration
 # todo: test page up and down
-# This is a test
+# todo: Incorrect remaining calculation
+# todo: Save successful message
+
 '''
 Per Diem Calculator Beta
 By Richard Romick
@@ -154,8 +155,8 @@ class Bank:
         if not self.is_initialized():
             raise InvalidOperationError("Debug error: Operations on Bank executed before values initialized")
 
-        # then, make calculation and return result
-        return self.end_date - self.begin_date
+        # then, make calculation and return result (added 1 to make the dates inclusive on both ends [20161228])
+        return self.end_date.day - self.begin_date.day + 1
 
     def is_initialized(self):
         # usage: determine if Bank has been given any updates to its original values
@@ -168,7 +169,7 @@ class Bank:
         # usage: calculate total per diem dollar amount
         total = self.travel_per_diem * 2
         duration = self.calculate_tdy_duration()
-        total += (duration.days - 2) * self.daily_per_diem
+        total += (duration - 2) * self.daily_per_diem
         return total
 
     def add_transaction(self, name, transaction_date, amount, remarks):
