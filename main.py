@@ -1,12 +1,14 @@
 import os
+import pdb
 from datetime import date, timedelta
 
 TESTDATA = False  # default:False -- if true, test data is loaded
-LOADDATA = True  # default: True -- if false, file loading is disabled
 
 # todo: test page up and down
-# todo: Incorrect remaining calculation
+# todo: test calculations
 # todo: Save successful message
+# todo: Changelog page
+# todo: Incorporate clear data functionality
 
 '''
 Per Diem Calculator Beta
@@ -22,6 +24,7 @@ Future plans page -- make this data available from within program
 Clean code -- optimize code to run faster and cleaner.  Fix all notifications on editors bar
 Comment code -- comment all code for readability
 Harden code -- implement input and parameter sanitation for all functions
+Multiple trips -- user can switch between different trips in realtime.  Multiple trips per file.  Can delete trips from file
 Loading functionality -- user chooses when to load at beginning of program and can load while running
 Intro message -- displays program name, author and version number
 Streamline console -- More creative ways to display data and receive inputs
@@ -47,12 +50,22 @@ class InvalidOperationError(Exception):  # exception class
 class Bank:
     # Class contains transaction and perdiem data and performs operations on them
     def __init__(self):
-        self.begin_date = date(1950, 1, 1)  # begin date of travel, new years 2000 indicates no data
-        self.end_date = date(1950, 1, 1)  # end date of travel, new years 2000 indicates no data
+        self.begin_date = date(1950, 1, 1)  # begin date of travel, new years 1950 indicates no data
+        self.end_date = date(1950, 1, 1)  # end date of travel, new years 1950 indicates no data
         self.travel_per_diem = 0  # per diem for travel days
         self.daily_per_diem = 0  # per diem for normal days
         self.transactions = []
 
+
+    def clear_data(self):
+        #function erases all data from the program
+        self.begin_date = date(1950, 1, 1)
+        self.end_date = date(1950, 1, 1)
+        self.travel_per_diem = 0
+        self.daily_per_diem = 0
+        self.transactions = []
+
+           
     def load_data(self):
         # function loads data from file ledger.txt
         try:
@@ -248,6 +261,7 @@ class GUI:
         self.bank = Bank()  # variable is used for all interaction with Bank class
         self.display_index = 0
         self.max_num_transactions_display = 20
+        self.load_data = True  # controlls whether the program loads from file automatically
 
     # this method checks a display index and corrects for out of bounds issues
     def correct_display_index(self, display_index):
@@ -316,7 +330,7 @@ class GUI:
             print("TDY end date: %s" % self.bank.end_date)
 
             try:
-                print("TDY duration: %s" % self.bank.calculate_tdy_duration())
+                print("TDY duration: %s days" % self.bank.calculate_tdy_duration())
             except InvalidOperationError:
                 print("")
 
@@ -358,7 +372,7 @@ class GUI:
 
             # time for user input
             choice = input("Menu: [c]ange dates & Per Diem, [n]ew transaction, [#] modify transaction, page [u]p, "
-                           "page [d]own, [s]ave, [q]uit: ")
+                           "page [d]own, c[l]ear data, [s]ave, [q]uit: ")
 
             # user chooses to quit program
             if choice == 'q':
@@ -384,6 +398,12 @@ class GUI:
             elif choice == 's':
                 self.bank.save_data()
 
+            # user chooses to clear data
+            elif choice == 'l':
+                self.bank.clear_data()     # clear all data
+                self.load_data = False     # prevents the program from loading data
+                self.enter_per_diem_data() # restart process for entering initial per diem data
+
             else:
                 # user chooses to modify transaction
                 try:
@@ -395,13 +415,14 @@ class GUI:
 
     def start_ui(self):
         # usage: begin main program loop
-
-        if LOADDATA:  # controlled by global variable
+        pdb.set_trace()
+        if self.load_data:  # flag controls whether program automatically loads data
             try:
                 self.bank.load_data()
             except InvalidOperationError:  # exception is raised when file is not found
                 print("")
 
+        self.load_data = True  # If we didn't load data this time, set flag back to default
 
         # first, see if any files were loaded
         if not self.bank.is_initialized():
@@ -578,6 +599,8 @@ class GUI:
         except InvalidOperationError as e:
             print(e.message)
 
+
+# program starts from here
 ui = GUI()
 
 if TESTDATA:  # controlled by global variable
