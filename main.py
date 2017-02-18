@@ -5,7 +5,7 @@ from datetime import date, timedelta
 TESTDATA = False  # default:False -- if true, test data is loaded
 
 # todo: test page up and down
-# todo: test calculations
+# todo: correct duration calculation error
 # todo: Save successful message
 # todo: Changelog page
 # todo: Incorporate clear data functionality
@@ -168,8 +168,17 @@ class Bank:
         if not self.is_initialized():
             raise InvalidOperationError("Debug error: Operations on Bank executed before values initialized")
 
-        # then, make calculation and return result (added 1 to make the dates inclusive on both ends [20161228])
-        return self.end_date.day - self.begin_date.day + 1
+        #Create timedelta object that is the difference between two dates
+        result = self.end_date - self.begin_date
+
+        #Result will be short one day, so we create a timedelta object of one day
+        modification = timedelta(days=1)
+
+        #Finally, we add modification to result
+        result = result + modification
+
+        #and return the result
+        return result
 
     def is_initialized(self):
         # usage: determine if Bank has been given any updates to its original values
@@ -181,7 +190,7 @@ class Bank:
     def calculate_per_diem_total(self):
         # usage: calculate total per diem dollar amount
         total = self.travel_per_diem * 2
-        duration = self.calculate_tdy_duration()
+        duration = self.calculate_tdy_duration().days
         total += (duration - 2) * self.daily_per_diem
         return total
 
@@ -330,7 +339,7 @@ class GUI:
             print("TDY end date: %s" % self.bank.end_date)
 
             try:
-                print("TDY duration: %s days" % self.bank.calculate_tdy_duration())
+                print("TDY duration: %s days" % self.bank.calculate_tdy_duration().days)
             except InvalidOperationError:
                 print("")
 
@@ -415,7 +424,6 @@ class GUI:
 
     def start_ui(self):
         # usage: begin main program loop
-        pdb.set_trace()
         if self.load_data:  # flag controls whether program automatically loads data
             try:
                 self.bank.load_data()
