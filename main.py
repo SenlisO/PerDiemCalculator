@@ -5,10 +5,10 @@ from datetime import date, timedelta
 TESTDATA = False  # default:False -- if true, test data is loaded
 
 # todo: test page up and down
-# todo: correct duration calculation error
 # todo: Save successful message
 # todo: Changelog page
 # todo: Incorporate clear data functionality
+# todo: Improve date entry functionality
 
 '''
 Per Diem Calculator Beta
@@ -19,7 +19,7 @@ V1.0 (TBD) -- All basic functions working.  All code properly commented and
     data is tested in all functions for integrity
 
 Future features
-Multi-platform -- runs as standalone executable/script
+Multi-platform -- runs as standalone executable/script (not sure if this is possible)
 Future plans page -- make this data available from within program
 Clean code -- optimize code to run faster and cleaner.  Fix all notifications on editors bar
 Comment code -- comment all code for readability
@@ -49,6 +49,31 @@ class InvalidOperationError(Exception):  # exception class
 
 class Bank:
     # Class contains transaction and perdiem data and performs operations on them
+
+    def convert_to_date(self, d):
+        '''
+        This function accepts a date and attempts to convert it to date object
+        Input
+            d - the date string to conver to a date object
+        Returns
+            date object
+        Throws
+            value error if date can't be converted
+        '''
+        try:
+            beggining_value = int(d)
+        except ValueError as e:
+            raise ValueError("That wasn't a numeric value")
+
+        working_value = str(beggining_value)
+        try:
+            result = date(int(working_value[:4]),int(working_value[4:6]), int(working_value[6:]))
+        except ValueError as e:
+            raise ValueError("That wasn't a military date")
+
+        return result
+
+    
     def __init__(self):
         self.begin_date = date(1950, 1, 1)  # begin date of travel, new years 1950 indicates no data
         self.end_date = date(1950, 1, 1)  # end date of travel, new years 1950 indicates no data
@@ -438,51 +463,35 @@ class GUI:
 
         # then, hand off program to main menu
         self.display_main_menu()
-
+        
+        
     def enter_per_diem_data(self):
         # todo: fix function so an error doesn't start entire loop again
-
+        # todo: change function to accept multiple date formats
+        
         self.clear_screen()
         bad_data = True
         while bad_data:
             bad_data = False
-            print("Beginning date data")
             try:
-                begin_date_year = int(input("Enter date year:"))
-                begin_date_month = int(input("Enter date month:"))
-                begin_date_day = int(input("Enter date day:"))
+                temp = input("Enter beggining date")
+                begin_date = self.bank.convert_to_date(temp)
             except ValueError:
                 self.clear_screen()
-                print("Enter integers for date values")
+                print("Enter standard military date")
                 bad_data = True
                 continue
 
+
             try:
-                begin_date = date(begin_date_year, begin_date_month, begin_date_day)
+                temp = input("Enter end date")
+                end_date = self.bank.convert_to_date(temp)
             except ValueError:
                 self.clear_screen()
-                print("Enter a valid date")
+                print("Enter standard military date")
                 bad_data = True
                 continue
 
-            print("End date data")
-            try:
-                end_date_year = int(input("Enter date year:"))
-                end_date_month = int(input("Enter date month:"))
-                end_date_day = int(input("Enter date day:"))
-            except ValueError:
-                self.clear_screen()
-                print("Enter integers for date values")
-                bad_data = True
-                continue
-
-            try:
-                end_date = date(end_date_year, end_date_month, end_date_day)
-            except ValueError:
-                self.clear_screen()
-                print("Enter a valid date")
-                bad_data = True
-                continue
 
             try:
                 travel_per_diem = float(input("Enter travel per diem amount:"))
@@ -518,21 +527,14 @@ class GUI:
         while bad_data:
             bad_data = False
             try:
-                transaction_date_year = int(input("Enter transaction date year: "))
-                transaction_date_month = int(input("Enter transaction date month: "))
-                transaction_date_day = int(input("Enter transaction date day:"))
+                temp = input("Enter transaction date")
+                transaction_date = self.bank.convert_to_date(temp)
             except ValueError:
                 self.clear_screen()
                 bad_data = True
-                print("Enter integers for date values")
+                print("Enter a standard military date")
                 continue
 
-            try:
-                transaction_date = date(transaction_date_year, transaction_date_month, transaction_date_day)
-            except ValueError:
-                self.clear_screen()
-                bad_data = True
-                print("Enter a valid date")
 
         # receive transaction name
         transaction_name = input("Enter transaction name: ")
