@@ -8,10 +8,9 @@ TESTDATA = False  # default:False -- if true, test data is loaded
 # todo: Save successful message
 # todo: Changelog page
 # todo: Incorporate clear data functionality
-# todo: Improve date entry functionality
 
 '''
-Per Diem Calculator Beta
+Per Diem Calculator Tracker
 By Richard Romick
 
 Version history
@@ -19,7 +18,7 @@ V1.0 (TBD) -- All basic functions working.  All code properly commented and
     data is tested in all functions for integrity
 
 Future features
-Multi-platform -- runs as standalone executable/script (not sure if this is possible)
+Multi-platform -- runs as standalone executable/script
 Future plans page -- make this data available from within program
 Clean code -- optimize code to run faster and cleaner.  Fix all notifications on editors bar
 Comment code -- comment all code for readability
@@ -242,19 +241,20 @@ class Bank:
         if date.today() < self.begin_date:
             return 0
 
-        # calculate how many days have transpired
-        time_spent = date.today() - self.begin_date
-        days = time_spent.days  # days will be modified, time_spent will not be
-
         # if the entire tdy has passed, return the total
         if date.today() >= self.end_date:
             return self.calculate_per_diem_total()
 
-        # if there is more than one day, add travel per diem
-        if days > 1:
-            total += self.travel_per_diem
-            days -= 1
-
+        # based on our previous checks, today must be on, or after, the first travel day
+        total += self.travel_per_diem
+        
+        # calculate how many days have transpired (not including the first travel day)
+        time_spent = date.today() - self.begin_date
+        # note: because of the way dates are subtracted, it will be short 1 day. In this function, that
+        # missing day is treated as the first travel day, making the calculations work.
+        days = time_spent.days
+        
+        # multiple days by daily_per_diem and add to total
         total += (self.daily_per_diem * days)
 
         return total
@@ -392,8 +392,8 @@ class GUI:
             print("Total spent: %s" % '${:,.2f}'.format(self.bank.calculate_total_spent()))
             print("Total remaining: %s" % '${:,.2f}'.format(self.bank.calculate_per_diem_total() -
                                                 self.bank.calculate_total_spent()))
-            print("Total per diem earned: %s" % '${:,.2f}'.format(self.bank.calculate_earned_per_diem()))
-            print("Total earned remaining: %s" % '${:,.2f}'.format(self.bank.calculate_earned_per_diem() -
+            print("Total per diem gained to date: %s" % '${:,.2f}'.format(self.bank.calculate_earned_per_diem()))
+            print("Difference between gained and spent: %s" % '${:,.2f}'.format(self.bank.calculate_earned_per_diem() -
                                                                     self.bank.calculate_total_spent()))
 
 
@@ -462,60 +462,84 @@ class GUI:
             self.enter_per_diem_data()
 
         # then, hand off program to main menu
-        self.display_main_menu()
+        # if bank is still not initialized, it is because the user chose to quit during enter_per_diem_data()
+        if self.bank.is_initialized():
+            self.display_main_menu()
         
         
     def enter_per_diem_data(self):
-        # todo: fix function so an error doesn't start entire loop again
-        # todo: change function to accept multiple date formats
-        
+
+        # function admin
         self.clear_screen()
+        bad_data = True
+
+        if self.bank.is_initialized(): # if bank already has previous data, user can cancel per diem entry
+            print ("Enter 'c' for any answer to cancel changes")
+        else: # if bank does not have previous data, user can quit program instead
+            print ("Enter 'q' for any answer to quit program")
+
+        # Beggining date: asks user for start date and converts it to date object
+        while bad_data:
+            bad_data = False
+            try:
+                temp = input("Enter beggining date ")
+                if temp == "q" or temp == "c": #This is the early exit option
+                    return
+                begin_date = self.bank.convert_to_date(temp)
+            except ValueError:
+                self.clear_screen()
+                print("Enter standard military date: ")
+                bad_data = True
+
+        # End date: asks user for ending date and converts it to date object
         bad_data = True
         while bad_data:
             bad_data = False
             try:
-                temp = input("Enter beggining date")
-                begin_date = self.bank.convert_to_date(temp)
-            except ValueError:
-                self.clear_screen()
-                print("Enter standard military date")
-                bad_data = True
-                continue
-
-
-            try:
-                temp = input("Enter end date")
+                temp = input("Enter end date: ")
+                if temp == "q" or temp == "c": #This is the early exit option
+                    return
                 end_date = self.bank.convert_to_date(temp)
             except ValueError:
                 self.clear_screen()
                 print("Enter standard military date")
                 bad_data = True
-                continue
 
-
+        # Travel per diem: asks user for per diem for travel date and checks that it is a float
+        bad_data = True
+        while bad_data:
+            bad_data = False
             try:
-                travel_per_diem = float(input("Enter travel per diem amount:"))
+                temp = input("Enter travel per diem amount: ")
+                if temp == "q" or temp == "c": #This is the early exit option
+                    return
+                travel_per_diem = float(temp)
             except ValueError:
                 self.clear_screen()
-                print("Enter an integer please")
+                print("Enter an monetary value please")
                 bad_data = True
-                continue
 
+        # Daily per diem: asks user for per diem for normal days and checks that it is a float
+        bad_data = True
+        while bad_data:
+            bad_data = False
             try:
-                daily_per_diem = float(input("Enter daily per diem amount:"))
+                temp = input("Enter daily per diem amount: ")
+                if temp == "q" or temp == "c": #This is the early exit option
+                    return
+                daily_per_diem = float(temp)
             except ValueError:
                 self.clear_screen()
-                print("Enter an integer please")
+                print("Enter an monetary value please")
                 bad_data = True
-                continue
 
-            try:
-                self.bank.set_per_diem_data(begin_date, end_date, travel_per_diem, daily_per_diem)
-            except InvalidOperationError as e:
-                self.clear_screen()
-                print(e.message)
-                bad_data = True
-                continue
+
+        try:
+            self.bank.set_per_diem_data(begin_date, end_date, travel_per_diem, daily_per_diem)
+        except InvalidOperationError as e:
+            self.clear_screen()
+            print(e.message)
+            return
 
     def enter_new_transaction(self):
         self.clear_screen()
