@@ -12,32 +12,6 @@ TESTDATA = False  # default:False -- if true, test data is loaded
 '''
 Per Diem Calculator Tracker
 By Richard Romick
-
-Version history
-V1.0 (TBD) -- All basic functions working.  All code properly commented and
-    data is tested in all functions for integrity
-
-Future features
-Multi-platform -- runs as standalone executable/script
-Future plans page -- make this data available from within program
-Clean code -- optimize code to run faster and cleaner.  Fix all notifications on editors bar
-Comment code -- comment all code for readability
-Harden code -- implement input and parameter sanitation for all functions
-Multiple trips -- user can switch between different trips in realtime.  Multiple trips per file.  Can delete trips from file
-Loading functionality -- user chooses when to load at beginning of program and can load while running
-Intro message -- displays program name, author and version number
-Streamline console -- More creative ways to display data and receive inputs
-Non-calculated transactions -- transactions that add to total, but not to remaining per diem
-    Useful in calculating how much was spent overall
-Complex Per Diem amounts -- add optional flight and lodging per diem amounts
-Partial payments -- add tracker for partial DTS disbursements and total remaining uncompensated amount
-Multiple files -- Able to interact with multiple ledgers, saving and loading to them at will
-Complex settings -- able to change display and functional behavior and carry over between running
-Automatic backup -- When saving to a file, automatically keeps a number of copies defined in settings file
-GUI -- change terminal behavior into buttons, labels, menus, etc
-Mobile functionality -- migrate desktop GUI into Android and iOS and maintain in concert with desktop
-Dropbox integration -- able to sync between devices by storing files in dropbox
-
 '''
 
 

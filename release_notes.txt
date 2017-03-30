@@ -1,0 +1,17 @@
+Release Notes
+
+V1.2 (Planned release)
+//To do//
+Examine code.  Clean where able.
+Properly commented code
+PFP 8 compliant
+
+V1.1 (Working release)
+//To do//
+Add docstrings
+Function Hardening (functions throw exceptions when supplied bad data)
+Testing framework
+Class private variables
+
+V1.0
+Initial release
