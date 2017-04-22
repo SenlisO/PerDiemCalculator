@@ -6,6 +6,7 @@ Comment code -- comment all code for readability.  All functions have docstrings
 PFP 8 compliant
 Harden code -- implement input and parameter sanitation for all functions
 Testing
+Integer math
 Multiple trips -- user can switch between different trips in realtime.  Multiple trips per file.  Can delete trips from file
 Loading functionality -- user chooses when to load at beginning of program and can load while running
 Intro message -- displays program name, author and version number

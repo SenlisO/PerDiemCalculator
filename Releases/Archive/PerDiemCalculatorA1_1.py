@@ -5,13 +5,40 @@ from datetime import date, timedelta
 TESTDATA = False  # default:False -- if true, test data is loaded
 
 # todo: test page up and down
+# todo: correct duration calculation error
 # todo: Save successful message
 # todo: Changelog page
 # todo: Incorporate clear data functionality
 
 '''
-Per Diem Calculator Tracker
+Per Diem Calculator Beta
 By Richard Romick
+
+Version history
+V1.0 (TBD) -- All basic functions working.  All code properly commented and
+    data is tested in all functions for integrity
+
+Future features
+Multi-platform -- runs as standalone executable/script
+Future plans page -- make this data available from within program
+Clean code -- optimize code to run faster and cleaner.  Fix all notifications on editors bar
+Comment code -- comment all code for readability
+Harden code -- implement input and parameter sanitation for all functions
+Multiple trips -- user can switch between different trips in realtime.  Multiple trips per file.  Can delete trips from file
+Loading functionality -- user chooses when to load at beginning of program and can load while running
+Intro message -- displays program name, author and version number
+Streamline console -- More creative ways to display data and receive inputs
+Non-calculated transactions -- transactions that add to total, but not to remaining per diem
+    Useful in calculating how much was spent overall
+Complex Per Diem amounts -- add optional flight and lodging per diem amounts
+Partial payments -- add tracker for partial DTS disbursements and total remaining uncompensated amount
+Multiple files -- Able to interact with multiple ledgers, saving and loading to them at will
+Complex settings -- able to change display and functional behavior and carry over between running
+Automatic backup -- When saving to a file, automatically keeps a number of copies defined in settings file
+GUI -- change terminal behavior into buttons, labels, menus, etc
+Mobile functionality -- migrate desktop GUI into Android and iOS and maintain in concert with desktop
+Dropbox integration -- able to sync between devices by storing files in dropbox
+
 '''
 
 
@@ -22,31 +49,6 @@ class InvalidOperationError(Exception):  # exception class
 
 class Bank:
     # Class contains transaction and perdiem data and performs operations on them
-
-    def convert_to_date(self, d):
-        '''
-        This function accepts a date and attempts to convert it to date object
-        Input
-            d - the date string to conver to a date object
-        Returns
-            date object
-        Throws
-            value error if date can't be converted
-        '''
-        try:
-            beggining_value = int(d)
-        except ValueError as e:
-            raise ValueError("That wasn't a numeric value")
-
-        working_value = str(beggining_value)
-        try:
-            result = date(int(working_value[:4]),int(working_value[4:6]), int(working_value[6:]))
-        except ValueError as e:
-            raise ValueError("That wasn't a military date")
-
-        return result
-
-    
     def __init__(self):
         self.begin_date = date(1950, 1, 1)  # begin date of travel, new years 1950 indicates no data
         self.end_date = date(1950, 1, 1)  # end date of travel, new years 1950 indicates no data
@@ -215,20 +217,19 @@ class Bank:
         if date.today() < self.begin_date:
             return 0
 
+        # calculate how many days have transpired
+        time_spent = date.today() - self.begin_date
+        days = time_spent.days  # days will be modified, time_spent will not be
+
         # if the entire tdy has passed, return the total
         if date.today() >= self.end_date:
             return self.calculate_per_diem_total()
 
-        # based on our previous checks, today must be on, or after, the first travel day
-        total += self.travel_per_diem
-        
-        # calculate how many days have transpired (not including the first travel day)
-        time_spent = date.today() - self.begin_date
-        # note: because of the way dates are subtracted, it will be short 1 day. In this function, that
-        # missing day is treated as the first travel day, making the calculations work.
-        days = time_spent.days
-        
-        # multiple days by daily_per_diem and add to total
+        # if there is more than one day, add travel per diem
+        if days > 1:
+            total += self.travel_per_diem
+            days -= 1
+
         total += (self.daily_per_diem * days)
 
         return total
@@ -329,7 +330,7 @@ class GUI:
             self.clear_screen()
 
             print("_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_")
-            print("|                      Per Diem Tracker Beta                    |")
+            print("|                    Per Diem Calculator Beta                   |")
             print("|                       By Richard Romick                       |")
             print("-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-")
 
@@ -366,8 +367,8 @@ class GUI:
             print("Total spent: %s" % '${:,.2f}'.format(self.bank.calculate_total_spent()))
             print("Total remaining: %s" % '${:,.2f}'.format(self.bank.calculate_per_diem_total() -
                                                 self.bank.calculate_total_spent()))
-            print("Total per diem gained to date: %s" % '${:,.2f}'.format(self.bank.calculate_earned_per_diem()))
-            print("Difference between gained and spent: %s" % '${:,.2f}'.format(self.bank.calculate_earned_per_diem() -
+            print("Total per diem earned: %s" % '${:,.2f}'.format(self.bank.calculate_earned_per_diem()))
+            print("Total earned remaining: %s" % '${:,.2f}'.format(self.bank.calculate_earned_per_diem() -
                                                                     self.bank.calculate_total_spent()))
 
 
@@ -436,84 +437,76 @@ class GUI:
             self.enter_per_diem_data()
 
         # then, hand off program to main menu
-        # if bank is still not initialized, it is because the user chose to quit during enter_per_diem_data()
-        if self.bank.is_initialized():
-            self.display_main_menu()
-        
-        
-    def enter_per_diem_data(self):
+        self.display_main_menu()
 
-        # function admin
+    def enter_per_diem_data(self):
+        # todo: fix function so an error doesn't start entire loop again
+
         self.clear_screen()
         bad_data = True
-
-        if self.bank.is_initialized(): # if bank already has previous data, user can cancel per diem entry
-            print ("Enter 'c' for any answer to cancel changes")
-        else: # if bank does not have previous data, user can quit program instead
-            print ("Enter 'q' for any answer to quit program")
-
-        # Beggining date: asks user for start date and converts it to date object
         while bad_data:
             bad_data = False
+            print("Beginning date data")
             try:
-                temp = input("Enter beggining date ")
-                if temp == "q" or temp == "c": #This is the early exit option
-                    return
-                begin_date = self.bank.convert_to_date(temp)
+                begin_date_year = int(input("Enter date year:"))
+                begin_date_month = int(input("Enter date month:"))
+                begin_date_day = int(input("Enter date day:"))
             except ValueError:
                 self.clear_screen()
-                print("Enter standard military date: ")
+                print("Enter integers for date values")
                 bad_data = True
+                continue
 
-        # End date: asks user for ending date and converts it to date object
-        bad_data = True
-        while bad_data:
-            bad_data = False
             try:
-                temp = input("Enter end date: ")
-                if temp == "q" or temp == "c": #This is the early exit option
-                    return
-                end_date = self.bank.convert_to_date(temp)
+                begin_date = date(begin_date_year, begin_date_month, begin_date_day)
             except ValueError:
                 self.clear_screen()
-                print("Enter standard military date")
+                print("Enter a valid date")
                 bad_data = True
+                continue
 
-        # Travel per diem: asks user for per diem for travel date and checks that it is a float
-        bad_data = True
-        while bad_data:
-            bad_data = False
+            print("End date data")
             try:
-                temp = input("Enter travel per diem amount: ")
-                if temp == "q" or temp == "c": #This is the early exit option
-                    return
-                travel_per_diem = float(temp)
+                end_date_year = int(input("Enter date year:"))
+                end_date_month = int(input("Enter date month:"))
+                end_date_day = int(input("Enter date day:"))
             except ValueError:
                 self.clear_screen()
-                print("Enter an monetary value please")
+                print("Enter integers for date values")
                 bad_data = True
+                continue
 
-        # Daily per diem: asks user for per diem for normal days and checks that it is a float
-        bad_data = True
-        while bad_data:
-            bad_data = False
             try:
-                temp = input("Enter daily per diem amount: ")
-                if temp == "q" or temp == "c": #This is the early exit option
-                    return
-                daily_per_diem = float(temp)
+                end_date = date(end_date_year, end_date_month, end_date_day)
             except ValueError:
                 self.clear_screen()
-                print("Enter an monetary value please")
+                print("Enter a valid date")
                 bad_data = True
+                continue
 
+            try:
+                travel_per_diem = float(input("Enter travel per diem amount:"))
+            except ValueError:
+                self.clear_screen()
+                print("Enter an integer please")
+                bad_data = True
+                continue
 
-        try:
-            self.bank.set_per_diem_data(begin_date, end_date, travel_per_diem, daily_per_diem)
-        except InvalidOperationError as e:
-            self.clear_screen()
-            print(e.message)
-            return
+            try:
+                daily_per_diem = float(input("Enter daily per diem amount:"))
+            except ValueError:
+                self.clear_screen()
+                print("Enter an integer please")
+                bad_data = True
+                continue
+
+            try:
+                self.bank.set_per_diem_data(begin_date, end_date, travel_per_diem, daily_per_diem)
+            except InvalidOperationError as e:
+                self.clear_screen()
+                print(e.message)
+                bad_data = True
+                continue
 
     def enter_new_transaction(self):
         self.clear_screen()
@@ -525,14 +518,21 @@ class GUI:
         while bad_data:
             bad_data = False
             try:
-                temp = input("Enter transaction date")
-                transaction_date = self.bank.convert_to_date(temp)
+                transaction_date_year = int(input("Enter transaction date year: "))
+                transaction_date_month = int(input("Enter transaction date month: "))
+                transaction_date_day = int(input("Enter transaction date day:"))
             except ValueError:
                 self.clear_screen()
                 bad_data = True
-                print("Enter a standard military date")
+                print("Enter integers for date values")
                 continue
 
+            try:
+                transaction_date = date(transaction_date_year, transaction_date_month, transaction_date_day)
+            except ValueError:
+                self.clear_screen()
+                bad_data = True
+                print("Enter a valid date")
 
         # receive transaction name
         transaction_name = input("Enter transaction name: ")
