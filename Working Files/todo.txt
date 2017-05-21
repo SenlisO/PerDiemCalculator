@@ -11,6 +11,7 @@ Multiple trips -- user can switch between different trips in realtime.  Multiple
 Loading functionality -- user chooses when to load at beginning of program and can load while running
 Intro message -- displays program name, author and version number
 Streamline console -- More creative ways to display data and receive inputs
+	   use Regular expressions to allow user to type a string of data and then pull the data no matter how they enter it.
 Non-calculated transactions -- transactions that add to total, but not to remaining per diem
     Useful in calculating how much was spent overall
 Complex Per Diem amounts -- add optional flight and lodging per diem amounts

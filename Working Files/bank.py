@@ -8,7 +8,7 @@ class InvalidOperationError(Exception):  # exception class
 class Accountant:
     # Class contains transaction and perdiem data and performs operations on them
 
-    def get_value(self, name):
+    def get_trip_values(self, name):
         '''
         This function is a one stop shop for necessary variable data
         Input
@@ -19,16 +19,8 @@ class Accountant:
         Throws
             value error if name is incorrect
         '''
-        if name == "begin date":
-            return _begin_date
-        elif name == "end date":
-            return _end_date
-        elif name == "daily per diem":
-            return _daily_per_diem
-        elif name == "travel per diem":
-            return _travel_per_diem
-        else:
-            raise ValueError("Accountant.get_value: variable referenced does not exist") 
+
+        
             
 
     def convert_to_date(self, d):
@@ -56,10 +48,8 @@ class Accountant:
 
     
     def __init__(self):
-        self._begin_date = date(1950, 1, 1)  # begin date of travel, new years 1950 indicates no data
-        self._end_date = date(1950, 1, 1)  # end date of travel, new years 1950 indicates no data
-        self._travel_per_diem = 0  # per diem for travel days
-        self._daily_per_diem = 0  # per diem for normal days
+        tdy = Trip(begin_date, end_date)
+        
         self._transactions = []
 
 
@@ -270,3 +260,102 @@ class Transaction:
         self.transaction_date = transaction_date
         self.amount = amount
         self.remarks = remarks
+
+class Trip:
+    # Class contains beggining and end dates of a trip, per diem info and calculations
+    def __init__(self, begin_date = Date(1950, 1, 1) , end_date = Date(1950, 1, 1), daily_per_diem = -1, travel_per_diem = -1):
+        self.begin_date = begin_date
+        self.end_date = end_date
+        self.daily_per_diem = daily_per_diem
+        self.travel_per_diem = travel_per_diem
+
+    def set_per_diem(self, daily_per_diem, travel_per_diem):
+        '''
+        Function used to set optional per diem values
+        parameters: float daily_per_diem and travel_per_diem
+        throws Value error if parameters are not floats
+        returns: none
+        '''
+        # step 1: make sure per diem values provided to function are integers or float
+        if (not isinstance(daily_per_diem, float) and not isinstance(daily_per_diem, int) or
+            (not isinstance(travel_per_diem, float) and not isinstance(travel_per_diem, int):
+            raise ValueError('Debug error: Trip.set_per_diem; values passed not float or int')
+             
+        # step 2: make sure the per diem values provided to function make sense (not negative)
+        if daily_per_diem < 0 or travel_per_diem < 0:
+            raise ValueError('Debug error: Trip.set_per_diem; values passed must be positive')
+
+        # step 3: store per diem values as floats
+        self.daily_per_diem = float(daily_per_diem)
+        self.travel_per_diem = float(ravel_per_diem)
+
+    def set_dates(self, begin_date, end_date):
+        '''
+        Function used to set begin and end dates
+        parameters: Date objects for the beggining and end dates of trip
+        throwns: ValueError if parameters are not date objects
+        returns: none
+        '''
+        # step 1: ensure that parameters provided are Date objects
+        if not isinstance(begin_date, Date) or not isinstance(end_date, Date):
+            raise ValueError('Debug error: Trip.set_dates; error: parameters provided not date objects')
+
+        # step 2: ensure that begin_date and end_dates make sense
+        if end_date <= begin_date:
+            raise ValueError('Debug error: Trip.set_dates; error: trip end date should be after begin date')
+
+        # step 3: set begin and end dates to provided values
+        self.begin_date = begin_date
+        self.end_date = end_date
+
+    def retrieve_values(self):
+        '''
+        Function used to retrieve all values from the Trip. 
+        parameters: none
+        returns: dictionary containing all values.  These values can be modified without affecting object's variables
+        throws: none
+        '''
+        # todo: ensure that if the optional per diem values are not set, we don't put those in the dictionary
+        # step 1: make sure Trip object has been initialized (provided legit values for)
+        if not self.is_initialized():
+            raise InvalidOperationError('Debug error: Trip.retrieve_values; error:attempted to retrieve vales before object is intialized')
+
+        # step 2: create a dictionary with date objects belonging to Trip object
+        values = {'begin_date' : self.begin_date, 'end_date': self.end_date}
+
+        # step 2: if per diem values are set, include those as well
+        if self.per_diem_values_set():
+             values['daily_per_diem'] = self.daily_per_diem
+             values['travel_per_diem'] = self.travel_per_diem
+             
+        # step 3: return dictionary to caller
+        return values
+
+    def is_initialized(self):
+        '''
+        Function used to determine whether Trip object has been provided proper values
+        parameters: none
+        returns: boolean indicating if object is initialized
+        throws: none
+        '''
+        # step 1: check all mandatory variables against the default values to make sure some value has been provided to it
+        # the only mandatory variables are the begin_date and the end_date, as of right now
+        if begin_date = Date(1950, 1, 1) or end_date = Date(1950, 1, 1):
+            return False:
+
+        #step 2: if you make it past that first check, values are good and we return true
+        return True:
+        
+    def per_diem_values_set(self):
+        '''
+        Function check per diem values to see if they have been set
+        parameters: none
+        returns: boolean indicating if per diem values have been set
+        throws: none
+        '''
+        # step 1: check per diem values against defaults
+        if daily_per_diem == -1 or travel_per_diem == -1:
+             return False:
+
+        # step 2: if we got past the first check, we must be good
+        return True:
