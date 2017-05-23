@@ -16,14 +16,12 @@ By Richard Romick
 '''
 
 
-
-
 class GUI:
     def __init__(self):
         self.bill = Accountant()  # bill is our accountant.  He is the person we make all financial requests to
         self.display_index = 0
         self.max_num_transactions_display = 20
-        self.load_data = True  # controlls whether the program loads from file automatically
+        self.load_data = True  # controls whether the program loads from file automatically
 
     # this method checks a display index and corrects for out of bounds issues
     def correct_display_index(self, display_index):
@@ -212,7 +210,7 @@ class GUI:
                 temp = input("Enter beggining date ")
                 if temp == "q" or temp == "c": #This is the early exit option
                     return
-                begin_date = self.bill.convert_to_date(temp)
+                begin_date = Accountant.convert_to_date(temp)
             except ValueError:
                 self.clear_screen()
                 print("Enter standard military date: ")
@@ -226,7 +224,7 @@ class GUI:
                 temp = input("Enter end date: ")
                 if temp == "q" or temp == "c": #This is the early exit option
                     return
-                end_date = self.bill.convert_to_date(temp)
+                end_date = Accountant.convert_to_date(temp)
             except ValueError:
                 self.clear_screen()
                 print("Enter standard military date")
@@ -279,7 +277,7 @@ class GUI:
             bad_data = False
             try:
                 temp = input("Enter transaction date")
-                transaction_date = self.bill.convert_to_date(temp)
+                transaction_date = Accountant.convert_to_date(temp)
             except ValueError:
                 self.clear_screen()
                 bad_data = True
