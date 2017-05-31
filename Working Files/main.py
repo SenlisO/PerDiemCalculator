@@ -4,11 +4,6 @@ from datetime import date, timedelta
 
 TESTDATA = False  # default:False -- if true, test data is loaded
 
-# todo: test page up and down
-# todo: Save successful message
-# todo: Changelog page
-# todo: Incorporate clear data functionality
-
 '''
 Per Diem Calculator Tracker
 By Richard Romick
