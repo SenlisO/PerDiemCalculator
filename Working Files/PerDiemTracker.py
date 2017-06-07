@@ -1,6 +1,6 @@
 import os
 import pdb
-from bank import Accountant, InvalidOperationError
+from bank import Accountant, InvalidOperationError, Trip
 from datetime import date, timedelta
 
 TESTDATA = False  # default:False -- if true, test data is loaded
@@ -65,6 +65,7 @@ class GUI:
     @staticmethod
     def clear_screen():
         # usage: function clears the screen, built cross platform
+        # todo: move this into a utilities header file
         if os.name == 'nt':
             os.system('cls')
         else:
