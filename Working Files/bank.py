@@ -9,7 +9,7 @@ class InvalidOperationError(Exception):  # exception class
 class Accountant:
     # Class contains transaction and perdiem data and performs operations on them
 
-    def get_trip_values(self, variable_name, trip_index=0):
+    def get_trip_value(self, variable_name, trip_index=0):
         """
         This function is a one stop shop for necessary variable data
         Input
@@ -31,9 +31,9 @@ class Accountant:
                 return pulled_values['begin_date']
             elif variable_name == "end date":
                 return pulled_values['end_date']
-            elif variable_name == "daily_per_diem":
+            elif variable_name == "daily per diem":
                 return pulled_values['daily_per_diem']
-            elif variable_name == "travel_per_diem":
+            elif variable_name == "travel per diem":
                 return pulled_values['travel_per_diem']
             else: # step 3: handle error scenarios
                 raise InvalidOperationError("Debug error: Accountant.get_trip_values: trip variable does not exist")
@@ -234,7 +234,7 @@ class Accountant:
 
         # step 1: call upon Trip object to calculate own duration
         try:
-            result = self._tdy[trip_index].calcultate_duration()
+            result = self._tdy[trip_index].calculate_duration()
         except InvalidOperationError as e:  # this exception occurs if Trip object's dates have not been set
             raise e
 
@@ -354,7 +354,11 @@ class Accountant:
         Throws
             none
         """
-        # todo: finish function
+        # step 1: combine dates_set() and per_diem_values_set() with "and".  If either is false, method returns false.
+        return self._tdy[trip_index].dates_set() and self._tdy[trip_index].per_diem_values_set()
+
+    def num_transactions(self):
+        return len(self._transactions)
 
 class Transaction:
     # Class contains data for individual _transactions
@@ -511,7 +515,7 @@ class Trip:
             Invalid Operation Error dates or per diem totals have not been set
         """
         # step 1: ensure dates and per diem values have been set
-        if not self.dates_set() or self.per_diem_values_set():
+        if not self.dates_set() or not self.per_diem_values_set():
             raise InvalidOperationError("Debug Error: Trip.calculate_per_diem_total() dates/perdiem not set")
 
         # step 2: double the travel per diem total

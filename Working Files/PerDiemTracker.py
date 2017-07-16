@@ -87,17 +87,17 @@ class GUI:
             print("-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-")
 
             print("Today's date: %s" % date.today())
-            print("TDY start date: %s" % self.bill.begin_date)
-            print("TDY end date: %s" % self.bill.end_date)
+            print("TDY start date: %s" % self.bill.get_trip_value("begin date"))
+            print("TDY end date: %s" % self.bill.get_trip_value("end date"))
 
             try:
-                print("TDY duration: %s days" % self.bill.calculate_tdy_duration().days)
+                print("TDY duration: %s days" % self.bill.calculate_trip_duration().days)
             except InvalidOperationError:
                 print("")
 
             print("-------------------------------")
-            print("Travel Per Diem amount: %s" % '${:,.2f}'.format(self.bill.get_value("travel per diem")))
-            print("Daily Per Diem amount: %s" % '${:,.2f}'.format(self.bill.get_value("daily per diem")))
+            print("Travel Per Diem amount: %s" % '${:,.2f}'.format(self.bill.get_trip_value("travel per diem")))
+            print("Daily Per Diem amount: %s" % '${:,.2f}'.format(self.bill.get_trip_value("daily per diem")))
             print("Total Per Diem amount: %s" % '${:,.2f}'.format(self.bill.calculate_per_diem_total()))
 
             # display transactions
@@ -107,7 +107,7 @@ class GUI:
             # last constant in for loop controls how many records are displayed at once
             for i in range(self.display_index, self.display_index + self.max_num_transactions_display):
                 # this statement only true with databases w/ less than self.max_num_transactions_display transactions
-                if i >= len(self.bill.transactions):
+                if i >= self.bill.num_transactions():
                     break
                 print("%s:%s   %s    %s     %s" % ('{:<2}'.format(i+1), self.bill.transactions[i].transaction_date,
                                                 '{:<30}'.format(self.bill.transactions[i].name),
@@ -185,12 +185,12 @@ class GUI:
         self.load_data = True  # If we didn't load data this time, set flag back to default
 
         # first, see if any files were loaded
-        if not self.bill.is_initialized():
+        if not self.bill.trip_parameters_set():
             self.enter_per_diem_data()
 
         # then, hand off program to main menu
         # if bill is still not initialized, it is because the user chose to quit during enter_per_diem_data()
-        if self.bill.is_initialized():
+        if self.bill.trip_parameters_set():
             self.display_main_menu()
         
         
@@ -199,7 +199,7 @@ class GUI:
         # function admin
         self.clear_screen()
         bad_data = True
-        if self.bill.is_initialized(): # if bill already has previous data, user can cancel per diem entry
+        if self.bill.trip_parameters_set(): # if bill already has previous data, user can cancel per diem entry
             print ("Enter 'c' for any answer to cancel changes")
         else: # if bill does not have previous data, user can quit program instead
             print ("Enter 'q' for any answer to quit program")
