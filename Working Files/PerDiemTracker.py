@@ -102,17 +102,17 @@ class GUI:
 
             # display transactions
             print("-----------------------------------------------------------------")
-            print("# Date,        Name,                             Amount,     Remarks")
+            print("#  Date,        Name,                             Amount,     Remarks")
 
             # last constant in for loop controls how many records are displayed at once
             for i in range(self.display_index, self.display_index + self.max_num_transactions_display):
                 # this statement only true with databases w/ less than self.max_num_transactions_display transactions
                 if i >= self.bill.num_transactions():
                     break
-                print("%s:%s   %s    %s     %s" % ('{:<2}'.format(i+1), self.bill.transactions[i].transaction_date,
-                                                '{:<30}'.format(self.bill.transactions[i].name),
-                                                '${:6,.2f}'.format(self.bill.transactions[i].amount),
-                                                self.bill.transactions[i].remarks))
+                print("%s:%s   %s    %s     %s" % ('{:<2}'.format(i+1), self.bill.get_transaction_value("date", i),
+                                                '{:<30}'.format(self.bill.get_transaction_value("name", i)),
+                                                '${:6,.2f}'.format(self.bill.get_transaction_value("amount", i)),
+                                                self.bill.get_transaction_value("remarks", i)))
 
             # display totals
             print("----------------------------------------------------------------")

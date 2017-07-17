@@ -9,6 +9,38 @@ class InvalidOperationError(Exception):  # exception class
 class Accountant:
     # Class contains transaction and perdiem data and performs operations on them
 
+    def get_transaction_value(self, variable_name, transaction_index):
+        """
+        This function is a one stop shop for necessary variable data
+        Input
+            variable_name - name of the variable caller wants a value for
+            possibilities include: "begin date", "end date" "daily per diem" "travel per diem"
+            transaction_index = 0 - which trip the caller wants values for
+        Return
+            value of variable requested
+        Throws
+            value error if name is incorrect
+        """
+        # step 1: create a check to ensure transaction_index is not out of bounds of existing transactions
+        in_list_bounds = transaction_index < len(self._transactions)
+
+        # step 2: if not in bounds, raise an exception
+        if not in_list_bounds:
+            raise ValueError("Debug Error: Accountant.get_transaction_value requested transaction does not exist")
+
+        # step 3: check which variable to caller is asking for and return that value
+        if variable_name == "name":
+            return self._transactions[transaction_index].name
+        elif variable_name == "date":
+            return self._transactions[transaction_index].transaction_date
+        elif variable_name == "amount":
+            return self._transactions[transaction_index].amount
+        elif variable_name == "remarks":
+            return self._transactions[transaction_index].remarks
+        else: # step 4: if none of the previous checks are correct, the caller isn't asking for a valid variable
+            raise ValueError("Debug error: Accountant.get_transaction_value variable does not exist")
+
+
     def get_trip_value(self, variable_name, trip_index=0):
         """
         This function is a one stop shop for necessary variable data
@@ -170,8 +202,8 @@ class Accountant:
             pulled_values = self._tdy[0].retrieve_values()
             file.write(pulled_values['begin_date'].strftime("%Y%m%d") + "\n")
             file.write(pulled_values['end_date'].strftime("%Y%m%d") + "\n")
-            file.write(pulled_values['travel_per_diem'] + "\n")
-            file.write(pulled_values['daily_per_diem'] + "\n")
+            file.write(str(pulled_values['travel_per_diem']) + "\n")
+            file.write(str(pulled_values['daily_per_diem']) + "\n")
         except InvalidOperationError as e:  # Trip.retrieve values can throw exception if object is not initialized
             raise e
 
