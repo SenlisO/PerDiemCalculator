@@ -9,7 +9,8 @@ TESTDATA = False  # default:False -- if true, test data is loaded
 # todo: Save successful message
 # todo: Changelog page
 # todo: Incorporate clear data functionality
-
+# todo: create testing functionatlity
+# todo: test page up/down
 '''
 Per Diem Calculator Tracker
 By Richard Romick
@@ -65,7 +66,6 @@ class GUI:
     @staticmethod
     def clear_screen():
         # usage: function clears the screen, built cross platform
-        # todo: move this into a utilities header file
         if os.name == 'nt':
             os.system('cls')
         else:
@@ -180,7 +180,9 @@ class GUI:
             try:
                 self.bill.load_data()
             except InvalidOperationError:  # exception is raised when file is not found
-                print("")
+                self.last_error = "Note: Ledger file not found.  Starting fresh database"
+            except IndexError: #exception is raised when file is corrupted
+                self.last_error = "Error: Ledger file corrupted."
 
         self.load_data = True  # If we didn't load data this time, set flag back to default
 
@@ -196,15 +198,22 @@ class GUI:
         
     def enter_per_diem_data(self):
 
-        # function admin
+        # step 1: function admin
         self.clear_screen()
         bad_data = True
-        if self.bill.trip_parameters_set(): # if bill already has previous data, user can cancel per diem entry
+
+        # step 2: if there is any errors, print them here
+        if self.last_error != "":
+            print (self.last_error)
+            self.last_error = ""
+
+        # step 3: display notice that the user can cancel input
+        if self.bill.trip_parameters_set(): # case that we are modifying per diem
             print ("Enter 'c' for any answer to cancel changes")
-        else: # if bill does not have previous data, user can quit program instead
+        else: # case that this is the first time we are inputting per diem
             print ("Enter 'q' for any answer to quit program")
 
-        # Beggining date: asks user for start date and converts it to date object
+        # step 4: asks user for start date and converts it to date object
         while bad_data:
             bad_data = False
             try:
@@ -217,7 +226,7 @@ class GUI:
                 print("Enter standard military date: ")
                 bad_data = True
 
-        # End date: asks user for ending date and converts it to date object
+        # step 5: asks user for ending date and converts it to date object
         bad_data = True
         while bad_data:
             bad_data = False
@@ -231,7 +240,7 @@ class GUI:
                 print("Enter standard military date")
                 bad_data = True
 
-        # Travel per diem: asks user for per diem for travel date and checks that it is a float
+        # step 6: asks user for per diem for travel date and checks that it is a float
         bad_data = True
         while bad_data:
             bad_data = False
@@ -245,7 +254,7 @@ class GUI:
                 print("Enter an monetary value please")
                 bad_data = True
 
-        # Daily per diem: asks user for per diem for normal days and checks that it is a float
+        # step 7: asks user for per diem for normal days and checks that it is a float
         bad_data = True
         while bad_data:
             bad_data = False
@@ -259,7 +268,7 @@ class GUI:
                 print("Enter an monetary value please")
                 bad_data = True
 
-
+        # step 8: call Accountant object to set per diem values
         try:
             self.bill.set_per_diem_data(begin_date, end_date, travel_per_diem, daily_per_diem)
         except InvalidOperationError as e:

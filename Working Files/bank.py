@@ -142,45 +142,50 @@ class Accountant:
         file.close()
 
         # todo: check file inputs for bad data and raise ValueError exception if necessary
+        # todo: parse all file data before loading any of it into accountant object
         # step 4: pull Trip object info from file_data array
-        temp = file_data[0]
-        begin_date = date(int(temp[0:4]), int(temp[4:6]), int(temp[6:]))
+        try:
+            temp = file_data[0]
+            begin_date = date(int(temp[0:4]), int(temp[4:6]), int(temp[6:]))
 
-        temp = file_data[1]
-        end_date = date(int(temp[0:4]), int(temp[4:6]), int(temp[6:]))
+            temp = file_data[1]
+            end_date = date(int(temp[0:4]), int(temp[4:6]), int(temp[6:]))
 
-        travel_per_diem = float(file_data[2])
-        daily_per_diem = float(file_data[3])
 
-        # step 5: set per diem and dates values in default TDY
-        # todo: multiple TDY loading
-        self._tdy[0].set_per_diem(daily_per_diem, travel_per_diem)
-        self._tdy[0].set_dates(begin_date, end_date)
+            travel_per_diem = float(file_data[2])
+            daily_per_diem = float(file_data[3])
 
-        # step 6: iterate through each transaction pulled from the file
-        i = 4  # index number,starts after previous reads for trip data is done
-        while i + 4 <= len(file_data):  # continue until file_data is out of records
-            # store next transaction's name and increment index
-            name = file_data[i]
-            name = name[:-1]  # this cuts off the newline character
-            i += 1
+            # step 5: set per diem and dates values in default TDY
+            # todo: multiple TDY loading
+            self._tdy[0].set_per_diem(daily_per_diem, travel_per_diem)
+            self._tdy[0].set_dates(begin_date, end_date)
 
-            # store transaction date and increment index
-            temp = file_data[i]
-            transaction_date = date(int(temp[0:4]), int(temp[4:6]), int(temp[6:]))
-            i += 1
+            # step 6: iterate through each transaction pulled from the file
+            i = 4  # index number,starts after previous reads for trip data is done
+            while i + 4 <= len(file_data):  # continue until file_data is out of records
+                # store next transaction's name and increment index
+                name = file_data[i]
+                name = name[:-1]  # this cuts off the newline character
+                i += 1
 
-            # store transaction amount and increment index
-            amount = float(file_data[i])
-            i += 1
+                # store transaction date and increment index
+                temp = file_data[i]
+                transaction_date = date(int(temp[0:4]), int(temp[4:6]), int(temp[6:]))
+                i += 1
 
-            # store transaction remarks and increment index
-            remarks = file_data[i]
-            remarks = remarks[:-1]  # this cuts off the newline character
-            i += 1
+                # store transaction amount and increment index
+                amount = float(file_data[i])
+                i += 1
 
-            # step 7: add pulled transaction data to new transaction
-            self.add_transaction(name, transaction_date, amount, remarks)
+                # store transaction remarks and increment index
+                remarks = file_data[i]
+                remarks = remarks[:-1]  # this cuts off the newline character
+                i += 1
+
+                # step 7: add pulled transaction data to new transaction
+                self.add_transaction(name, transaction_date, amount, remarks)
+        except IndexError as e:
+            raise e
 
     def save_data(self):
         """
