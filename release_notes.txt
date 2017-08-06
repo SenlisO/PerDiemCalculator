@@ -1,17 +1,25 @@
 Release Notes
 
-V1.2 (Planned release)
+Future roadmap
 //To do//
-Examine code.  Clean where able.
-Properly commented code
-PFP 8 compliant
+GUI
 
-V1.1 (Working release)
-//To do//
+V1.3
+(for Bank class and subclasses)
 Add docstrings
 Function Hardening (functions throw exceptions when supplied bad data)
 Testing framework
-Class private variables
+Properly commented code
+Examine code.  Clean where able.
+PEP 8 compliant
+
+V1.2
+Add color to text
+Add display of error messages
+
+V1.1
+[done] Separated Trip lodgic into separate class
+[done] Class private variables
 
 V1.0
 Initial release
