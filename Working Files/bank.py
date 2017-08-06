@@ -239,7 +239,6 @@ class Accountant:
             Value errors if bad data is passed to the program
         """
         # step 1: sanitize date values
-        # todo: change exceptions to Value Error
         if not isinstance(begin_date, date) or not isinstance(end_date, date):
             raise InvalidOperationError("Debug error: dates provided to Bank.setperdiemdata are not correct type")
         if end_date <= begin_date:

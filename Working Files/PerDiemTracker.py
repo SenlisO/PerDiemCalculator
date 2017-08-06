@@ -1,9 +1,11 @@
 import os
 import pdb
 from bank import Accountant, InvalidOperationError, Trip
-from datetime import date, timedelta
+import datetime
+from random import randint
 
-TESTDATA = False  # default:False -- if true, test data is loaded
+TEST_DATA = False  # default:False -- if true, test data is loaded
+NUMBER_TEST_TRANSACTIONS = 40 # number of test transactions to create
 
 # todo: test page up and down
 # todo: Save successful message
@@ -23,6 +25,7 @@ class GUI:
         self.display_index = 0
         self.max_num_transactions_display = 20
         self.load_data = True  # controls whether the program loads from file automatically
+        self.last_error = ""
 
     # this method checks a display index and corrects for out of bounds issues
     def correct_display_index(self, display_index):
@@ -30,8 +33,8 @@ class GUI:
             return 0
 
         # this is the case where display_index is too high
-        elif display_index > (len(self.bill.transactions) - self.max_num_transactions_display - 1):
-            temp = len(self.bill.transactions) - self.max_num_transactions_display - 1
+        elif display_index > (self.bill.num_transactions() - self.max_num_transactions_display - 1):
+            temp = self.bill.num_transactions() - self.max_num_transactions_display - 1
             # case that correction causes a negative display index
             if temp < 0:
                 return 0
@@ -43,23 +46,23 @@ class GUI:
 
     def create_test_data(self):
         # usage: create test data for debugging
-        begin_date = date(2016, 8, 15)
-        end_date = date(2016, 8, 26)
+        begin_date = datetime.date(2016, 8, 15)
+        end_date = datetime.date(2016, 8, 26)
         travel_per_diem = 200.0
         daily_per_diem = 140.0
 
+        self.bill.set_per_diem_data(begin_date, end_date, travel_per_diem, daily_per_diem)
+
         # set bill objects financial data
         try:
-            self.bill.set_per_diem_data(begin_date, end_date, travel_per_diem, daily_per_diem)
-            self.bill.add_transaction("7-11", date(2016, 8, 15), 3.23, "coffee and donuts")
-            self.bill.add_transaction("Marriott Sunshine", date(2016, 8, 15), 98.0, "Hotel stay")
-            self.bill.add_transaction("Burgers and more", date(2016, 8, 15), 5.5, "Dinner")
-            self.bill.add_transaction("Some more burgarz", date(2016, 8, 16), 11.5, "Lunch")
-            self.bill.add_transaction("Forgot these burgerz", date(2016, 8, 15), 6.75, "More Lunches")
-            self.bill.add_transaction("More stuff to eat", date(2016, 8, 16), 10.75, "Lunchenator")
-            self.bill.add_transaction("Marriott little dipper", date(2016, 8, 17), 95.12, "Hotel super")
-            self.bill.add_transaction("Marriott bigger lipper", date(2016, 8, 18), 97.00, "Hotel duper")
-
+            # todo: make sure we are creating exactly 40 records
+            for i in range(1, NUMBER_TEST_TRANSACTIONS + 2):
+                name = "Test" + str(i)
+                random_date_delta = randint(0, self.bill.calculate_trip_duration().days)
+                date = begin_date + datetime.timedelta(0, 0, random_date_delta)
+                amount = 20.0 + i
+                remarks = "This is the " + str(i) + " test"
+                self.bill.add_transaction(name, date, amount, remarks)
         except InvalidOperationError as e:
             print(e.message)
 
@@ -86,7 +89,9 @@ class GUI:
             print("|                       By Richard Romick                       |")
             print("-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-")
 
-            print("Today's date: %s" % date.today())
+            # todo: print last error message here
+
+            print("Today's date: %s" % datetime.date.today())
             print("TDY start date: %s" % self.bill.get_trip_value("begin date"))
             print("TDY end date: %s" % self.bill.get_trip_value("end date"))
 
@@ -149,11 +154,11 @@ class GUI:
 
             # user chooses to page up
             elif choice == 'u':
-                self.display_index = self.correct_display_index(self.display_index + self.max_num_transactions_display)
+                self.display_index = self.correct_display_index(self.display_index - self.max_num_transactions_display)
 
             # user chooses to page down
             elif choice == 'd':
-                self.display_index = self.correct_display_index(self.display_index - self.max_num_transactions_display)
+                self.display_index = self.correct_display_index(self.display_index + self.max_num_transactions_display)
 
             # user chooses to save
             elif choice == 's':
@@ -286,7 +291,7 @@ class GUI:
         while bad_data:
             bad_data = False
             try:
-                temp = input("Enter transaction date")
+                temp = input("Enter transaction date: ")
                 transaction_date = Accountant.convert_to_date(temp)
             except ValueError:
                 self.clear_screen()
@@ -318,30 +323,22 @@ class GUI:
             print(e.message)
 
     def modify_transaction_menu(self, transaction_number):
+        # todo: make modifying transaction date military date
         self.clear_screen()
         bad_data = True
         transaction_amount = 0
-        transaction_date = date(1950, 1, 1)
+        transaction_date = datetime.date(1950, 1, 1)
 
         # receive date data
         while bad_data:
             bad_data = False
             try:
-                transaction_date_year = int(input("Enter transaction date year: "))
-                transaction_date_month = int(input("Enter transaction date month: "))
-                transaction_date_day = int(input("Enter transaction date day:"))
+                temp = input("Enter transaction date: ")
+                transaction_date = Accountant.convert_to_date(temp)
             except ValueError:
                 self.clear_screen()
                 bad_data = True
-                print("Enter integers for date values")
-                continue
-
-            try:
-                transaction_date = date(transaction_date_year, transaction_date_month, transaction_date_day)
-            except ValueError:
-                self.clear_screen()
-                bad_data = True
-                print("Enter a valid date")
+                print("Enter a standard military date")
                 continue
 
         # receive transaction name
@@ -372,7 +369,7 @@ class GUI:
 # program starts from here
 ui = GUI()
 
-if TESTDATA:  # controlled by global variable
+if TEST_DATA:  # controlled by global variable
     ui.create_test_data()
 
 ui.start_ui()
