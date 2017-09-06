@@ -5,7 +5,6 @@ import datetime
 from random import randint
 
 # todo: Save successful message
-# todo: save upon exit functionality
 # todo: center on new/modified transaction functionality
 '''
 Per Diem Calculator Tracker
@@ -178,7 +177,7 @@ class TextUI:
 
             print("_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_")
             print("|                       Per Diem Tracker                        |")
-            print("|                          Version 2                            |")
+            print("|                          Version 2.1                          |")
             print("|                       By Richard Romick                       |")
             print("-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-")
 
@@ -230,7 +229,7 @@ class TextUI:
                 print ("")
 
             # time for user input
-            choice = input("Menu: [c]ange dates & Per Diem, [n]ew transaction, [#] modify transaction, page [u]p, "
+            choice = input("Menu: [c]hange dates & Per Diem, [n]ew transaction, [#] modify transaction, page [u]p, "
                            "page [d]own, c[l]ear data, [s]ave, [q]uit: ")
 
             choice = str.lower(choice) # convert user input to all lowercase
@@ -322,13 +321,13 @@ class TextUI:
         while bad_data:
             bad_data = False
             try:
-                temp = input("Enter beggining date ")
+                temp = input("Enter TDY start date [YYYYMMDD]: ")
                 if temp == "q" or temp == "c": #This is the early exit option
                     return
                 begin_date = Accountant.convert_to_date(temp)
             except ValueError:
                 self.clear_screen()
-                print("Enter standard military date: ")
+                print("Enter standard military date [YYYYMMDD]: ")
                 bad_data = True
 
         # step 5: asks user for ending date and converts it to date object
@@ -336,13 +335,13 @@ class TextUI:
         while bad_data:
             bad_data = False
             try:
-                temp = input("Enter end date: ")
+                temp = input("Enter TDY end date [YYYYMMDD]: ")
                 if temp == "q" or temp == "c": #This is the early exit option
                     return
                 end_date = Accountant.convert_to_date(temp)
             except ValueError:
                 self.clear_screen()
-                print("Enter standard military date")
+                print("Enter standard military date [YYYYMMDD]:")
                 bad_data = True
 
         # step 6: asks user for per diem for travel date and checks that it is a float
@@ -394,12 +393,12 @@ class TextUI:
         while bad_data:
             bad_data = False
             try:
-                temp = input("Enter transaction date: ")
+                temp = input("Enter transaction date [YYYYMMDD]: ")
                 transaction_date = Accountant.convert_to_date(temp)
             except ValueError:
                 self.clear_screen()
                 bad_data = True
-                print("Enter a standard military date")
+                print("Enter a standard military date [YYYYMMDD]: ")
                 continue
 
 
@@ -439,12 +438,12 @@ class TextUI:
         while bad_data:
             bad_data = False
             try:
-                temp = input("Enter transaction date: ")
+                temp = input("Enter transaction date [YYYYMMDD]: ")
                 transaction_date = Accountant.convert_to_date(temp)
             except ValueError:
                 self.clear_screen()
                 bad_data = True
-                print("Enter a standard military date")
+                print("Enter a standard military date [YYYYMMDD]:")
                 continue
 
         # receive transaction name
