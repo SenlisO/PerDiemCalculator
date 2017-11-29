@@ -1,8 +1,9 @@
-import os
-import pdb
-from bank import Accountant, InvalidOperationError
 import datetime
+import os
 from random import randint
+from decimal import *
+
+from bank import Accountant, InvalidOperationError
 
 # todo: Save successful message
 # todo: center on new/modified transaction functionality
@@ -16,10 +17,11 @@ class TextUI:
     def __init__(self, load):
         """
         GUI init method
-        args: 
+        Params:
             load -- controls whether function loads from ledger.txt
-        returns: none
-        raises: none
+        Returns: none
+        Raises: none
+        updated: 20171129
         """
 
         self.bill = Accountant()  # bill is our accountant.  He is the person we make all financial requests to
@@ -27,6 +29,7 @@ class TextUI:
         self.max_num_transactions_display = 20
         self.load_data = load  # controls whether the program loads from file automatically
         self.last_error = ""
+        getcontext().prec = 2 # function of decimal class to control decimal precision
 
 
     def page_up_down(self, is_up):
@@ -298,15 +301,20 @@ class TextUI:
         # if bill is still not initialized, it is because the user chose to quit during enter_per_diem_data()
         if self.bill.trip_parameters_set():
             self.display_main_menu()
-        
-        
-    def enter_per_diem_data(self):
 
+    def enter_per_diem_data(self):
+        """
+        Singular program for entering or changing per diem amounts
+        Params: none
+        Returns: none
+        Raises: none
+        Updated: 20171129
+        """
         # step 1: function admin
         self.clear_screen()
         bad_data = True
 
-        # step 2: if there is any errors, print them here
+        # step 2: if there is any errors stored from elsewhere in the program, print it here
         if self.last_error != "":
             print (self.last_error)
             self.last_error = ""
@@ -344,7 +352,7 @@ class TextUI:
                 print("Enter standard military date [YYYYMMDD]:")
                 bad_data = True
 
-        # step 6: asks user for per diem for travel date and checks that it is a float
+        # step 6: asks user for per diem for travel day and checks that it is a float
         bad_data = True
         while bad_data:
             bad_data = False
@@ -352,7 +360,7 @@ class TextUI:
                 temp = input("Enter travel per diem amount: ")
                 if temp == "q" or temp == "c": #This is the early exit option
                     return
-                travel_per_diem = float(temp)
+                travel_per_diem = Decimal(temp) # 20171129: changed from reading float value to Decimal
             except ValueError:
                 self.clear_screen()
                 print("Enter an monetary value please")
@@ -366,7 +374,7 @@ class TextUI:
                 temp = input("Enter daily per diem amount: ")
                 if temp == "q" or temp == "c": #This is the early exit option
                     return
-                daily_per_diem = float(temp)
+                daily_per_diem = Decimal(temp) # 20171129: changed from reading float value to Decimal
             except ValueError:
                 self.clear_screen()
                 print("Enter an monetary value please")
