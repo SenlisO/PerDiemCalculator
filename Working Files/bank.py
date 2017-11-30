@@ -5,6 +5,9 @@ class InvalidOperationError(Exception):  # exception class
     def __init__(self, message):
         self.message = message
 
+class UserQuitException(Exception): # exception class
+    def __init__(self, message):
+        self.message = message
 
 class Accountant:
     # Class contains transaction and perdiem data and performs operations on them

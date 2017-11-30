@@ -3,10 +3,11 @@ import os
 from random import randint
 from decimal import *
 
-from bank import Accountant, InvalidOperationError
+from bank import Accountant, InvalidOperationError, UserQuitException
 
 # todo: Save successful message
 # todo: center on new/modified transaction functionality
+# todo: UI.enter_per_diem_data catch decimal.InvalidOperation exception for per diem amount
 '''
 Per Diem Calculator Tracker
 By Richard Romick
@@ -304,7 +305,7 @@ class TextUI:
 
     def enter_per_diem_data(self):
         """
-        Singular program for entering or changing per diem amounts
+        Singular function for entering or changing per diem amounts
         Params: none
         Returns: none
         Raises: none
@@ -325,32 +326,21 @@ class TextUI:
         else: # case that this is the first time we are inputting per diem
             print ("Enter 'q' for any answer to quit program")
 
-        # step 4: asks user for start date and converts it to date object
-        while bad_data:
-            bad_data = False
-            try:
-                temp = input("Enter TDY start date [YYYYMMDD]: ")
-                if temp == "q" or temp == "c": #This is the early exit option
-                    return
-                begin_date = Accountant.convert_to_date(temp)
-            except ValueError:
-                self.clear_screen()
-                print("Enter standard military date [YYYYMMDD]: ")
-                bad_data = True
+        # step 4: retrieve TDY begin date
+        try:
+            begin_date = self.receive_date_user_input(1) # prompt for begin date
+        except UserQuitException as e:
+            print (e.message)
+            return
 
-        # step 5: asks user for ending date and converts it to date object
-        bad_data = True
-        while bad_data:
-            bad_data = False
-            try:
-                temp = input("Enter TDY end date [YYYYMMDD]: ")
-                if temp == "q" or temp == "c": #This is the early exit option
-                    return
-                end_date = Accountant.convert_to_date(temp)
-            except ValueError:
-                self.clear_screen()
-                print("Enter standard military date [YYYYMMDD]:")
-                bad_data = True
+        # step 5: retrieve TDY end date
+        try:
+            end_date = self.receive_date_user_input(2) # prompt for end date
+        except UserQuitException as e:
+            print (e.message)
+            return
+
+        # todo: verify dates are accurate here and loop back if necessary
 
         # step 6: asks user for per diem for travel day and checks that it is a float
         bad_data = True
@@ -381,7 +371,7 @@ class TextUI:
                 bad_data = True
 
         # step 8: call Accountant object to set per diem values
-        try:
+        try: # todo: bank class accepts Decimal data types
             self.bill.set_per_diem_data(begin_date, end_date, travel_per_diem, daily_per_diem)
         except InvalidOperationError as e:
             self.clear_screen()
@@ -390,6 +380,35 @@ class TextUI:
 
         self.bank_has_been_modified = True
         return
+
+    def receive_date_user_input(self, prompt):
+        """
+        receives date data from user
+        Params: prompt: 1 - begin date, 2 - end date
+        Returns: date object
+        Raises:
+            ValueError if user enters invalid date
+            UserQuiteException if user wishes to cancel/quit
+        """
+
+        good_data = False # this value is True until we get good input from user
+
+        while not good_data:
+            good_data = True  # assume we have good data unless we get an error
+            try:
+                # multiple prompts depending on function parameter
+                if prompt == 1:
+                    temp = input("Enter TDY start date [YYYYMMDD]: ")
+                elif prompt == 2:
+                    temp = input("Enter TDY end date [YYYYMMDD]")
+
+                if temp == "q" or temp == "c":  # This is the early exit option
+                    raise UserQuitException("User cancel/quit detected")
+                begin_date = Accountant.convert_to_date(temp)
+            except ValueError:
+                self.clear_screen()
+                print("Enter standard military date [YYYYMMDD]: ")
+                good_data = False
 
     def enter_new_transaction(self):
         self.clear_screen()
