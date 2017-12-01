@@ -313,7 +313,6 @@ class TextUI:
         """
         # step 1: function admin
         self.clear_screen()
-        bad_data = True
 
         # step 2: if there is any errors stored from elsewhere in the program, print it here
         if self.last_error != "":
@@ -326,49 +325,15 @@ class TextUI:
         else: # case that this is the first time we are inputting per diem
             print ("Enter 'q' for any answer to quit program")
 
-        # step 4: retrieve TDY begin date
+        # step 4-7: retrieve user input
         try:
             begin_date = self.receive_date_user_input(1) # prompt for begin date
+            end_date = self.receive_date_user_input(2)  # prompt for end date
+            travel_per_diem = self.receive_dollar_user_input(1) # prompt for travel_per_diem
+            daily_per_diem = self.receive_dollar_user_input(2) # prompt for travel_per_diem
         except UserQuitException as e:
             print (e.message)
             return
-
-        # step 5: retrieve TDY end date
-        try:
-            end_date = self.receive_date_user_input(2) # prompt for end date
-        except UserQuitException as e:
-            print (e.message)
-            return
-
-        # todo: verify dates are accurate here and loop back if necessary
-
-        # step 6: asks user for per diem for travel day and checks that it is a float
-        bad_data = True
-        while bad_data:
-            bad_data = False
-            try:
-                temp = input("Enter travel per diem amount: ")
-                if temp == "q" or temp == "c": #This is the early exit option
-                    return
-                travel_per_diem = Decimal(temp) # 20171129: changed from reading float value to Decimal
-            except ValueError:
-                self.clear_screen()
-                print("Enter an monetary value please")
-                bad_data = True
-
-        # step 7: asks user for per diem for normal days and checks that it is a float
-        bad_data = True
-        while bad_data:
-            bad_data = False
-            try:
-                temp = input("Enter daily per diem amount: ")
-                if temp == "q" or temp == "c": #This is the early exit option
-                    return
-                daily_per_diem = Decimal(temp) # 20171129: changed from reading float value to Decimal
-            except ValueError:
-                self.clear_screen()
-                print("Enter an monetary value please")
-                bad_data = True
 
         # step 8: call Accountant object to set per diem values
         try: # todo: bank class accepts Decimal data types
@@ -408,10 +373,43 @@ class TextUI:
                 date_answer = Accountant.convert_to_date(user_input)
             except ValueError:
                 self.clear_screen()
-                print("Enter standard military date [YYYYMMDD]: ")
+                print("Enter standard military date")
                 good_data = False
 
         return date_answer
+
+    def receive_dollar_user_input(self, prompt):
+        """
+        receives dollar data from user
+        Params: prompt: 1 - per diem amount, 2 - daily per diem amount
+        Returns: Decimal dolloar amount
+        Raises:
+            ValueError if user enters invalid Dollar amount
+            Decimal.invalidoperation error for invalid Decimal
+            UserQuiteException if user wishes to cancel/quit
+        """
+        good_data = False # this value is True until we get good input from user
+        per_diem = Decimal(0)
+
+        while not good_data:
+            good_data = True  # assume we have good data unless we get an error
+            try:
+                # multiple prompts depending on function parameter
+                if prompt == 1:
+                    user_input = input("Enter travel per diem amount: ")
+                elif prompt == 2:
+                    user_input = input("Enter daily per diem amount: ")
+
+                if user_input == "q" or user_input == "c":  # This is the early exit option
+                    raise UserQuitException("User cancel/quit detected")
+                per_diem = Decimal(user_input)
+            except (ValueError, InvalidOperation):
+                self.clear_screen()
+                print("Enter a Decimal Value")
+                good_data = False
+
+            return per_diem
+
 
     def enter_new_transaction(self):
         self.clear_screen()
