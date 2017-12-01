@@ -372,7 +372,7 @@ class TextUI:
 
         # step 8: call Accountant object to set per diem values
         try: # todo: bank class accepts Decimal data types
-            self.bill.set_per_diem_data(begin_date, end_date, travel_per_diem, daily_per_diem)
+            self.bill.set_per_diem_data(begin_date, end_date, float(travel_per_diem), float(daily_per_diem))
         except InvalidOperationError as e:
             self.clear_screen()
             print(e.message)
@@ -392,23 +392,26 @@ class TextUI:
         """
 
         good_data = False # this value is True until we get good input from user
+        date_answer = datetime.date(1970, 1, 1)
 
         while not good_data:
             good_data = True  # assume we have good data unless we get an error
             try:
                 # multiple prompts depending on function parameter
                 if prompt == 1:
-                    temp = input("Enter TDY start date [YYYYMMDD]: ")
+                    user_input = input("Enter TDY start date [YYYYMMDD]: ")
                 elif prompt == 2:
-                    temp = input("Enter TDY end date [YYYYMMDD]")
+                    user_input = input("Enter TDY end date [YYYYMMDD]: ")
 
-                if temp == "q" or temp == "c":  # This is the early exit option
+                if user_input == "q" or user_input == "c":  # This is the early exit option
                     raise UserQuitException("User cancel/quit detected")
-                begin_date = Accountant.convert_to_date(temp)
+                date_answer = Accountant.convert_to_date(user_input)
             except ValueError:
                 self.clear_screen()
                 print("Enter standard military date [YYYYMMDD]: ")
                 good_data = False
+
+        return date_answer
 
     def enter_new_transaction(self):
         self.clear_screen()
