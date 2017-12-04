@@ -380,7 +380,7 @@ class TextUI:
                 print(error_prompt)
                 good_data = False
 
-            return data
+        return data
 
     def enter_new_transaction(self):
         """
@@ -390,44 +390,30 @@ class TextUI:
         Raises: none
         Updated: 20171201
         """
+        # todo: fold modify_transaction into this function
 
         self.clear_screen()
         bad_data = True
         transaction_amount = 0
         transaction_date = (0, 0, 0)
 
-        # todo: finish function after receive_user_input works
-        # step 1: retrieve date
+        # step 1: retrieve data from user
         try:
-            transaction_date = self.receive_user_input("Enter transaction date ", "Enter standard military date", datetime.date) # prompt for transaction date
+            transaction_date = self.receive_user_input("Enter transaction date: ", "Enter standard military date: ", datetime.date) # prompt for transaction date
+            transaction_name = self.receive_user_input("Enter transaction name: ", "Enter a name: ", str)
+            transaction_amount = self.receive_user_input("Enter transaction amount: ", "Enter a Decimal amount: ", float) # todo: replace with decimal
+            transaction_remarks = self.receive_user_input("Enter transaction remarks: ", "Enter remarks: ", str)
         except UserQuitException as e:
             print (e.message)
             return
 
-        # step 2: retrieve name
-        transaction_name = input("Enter transaction name: ")
-
-        # receive transaction amount
-        bad_data = True
-        while bad_data:
-            bad_data = False
-            try:
-                transaction_amount = float(input("Enter transaction amount: "))
-            except ValueError:
-                self.clear_screen()
-                bad_data = True
-                print("Enter a valid dollar amount")
-
-        # enter transaction remarks
-        transaction_remarks = input("Enter transaction remarks: ")
-
         try:
             self.bill.add_transaction(transaction_name, transaction_date, transaction_amount, transaction_remarks)
         except InvalidOperationError as e:
-            print(e.message)
+            print(e.message) # todo: put this, and all other error messages, in message queue (others will be cleared off screen)
             return
 
-        self.bank_has_been_modified = True
+        self.bank_has_been_modified = True # todo: why is this here instead of tracked by bank.  What is it's purpose
         return
 
     def modify_transaction_menu(self, transaction_number):
