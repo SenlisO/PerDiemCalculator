@@ -7,7 +7,6 @@ from bank import Accountant, InvalidOperationError, UserQuitException
 
 # todo: Save successful message
 # todo: center on new/modified transaction functionality
-# todo: UI.enter_per_diem_data catch decimal.InvalidOperation exception for per diem amount
 '''
 Per Diem Calculator Tracker
 By Richard Romick
@@ -56,8 +55,7 @@ class TextUI:
 
         # store result in class attribute
         self.display_index = disp_indx
-        
-        
+
     def correct_display_index(self, display_index):
         """
         this method checks a display index and corrects for out of bounds issues
@@ -164,7 +162,6 @@ class TextUI:
                 else:
                     continue_asking = True
                     print ("Please enter y, n or c")
-        
 
     def display_main_menu(self):
         self.message = ""  # variable displays a message if not empty
@@ -327,10 +324,10 @@ class TextUI:
 
         # step 4-7: retrieve user input
         try:
-            begin_date = self.receive_date_user_input(1) # prompt for begin date
-            end_date = self.receive_date_user_input(2)  # prompt for end date
-            travel_per_diem = self.receive_dollar_user_input(1) # prompt for travel_per_diem
-            daily_per_diem = self.receive_dollar_user_input(2) # prompt for travel_per_diem
+            begin_date = self.receive_user_input("Enter TDY start date [YYYYMMDD]: ", "Enter standard military date", datetime.date)
+            end_date = self.receive_user_input("Enter TDY end date [YYYYMMDD]: ", "Enter standard military date", datetime.date)
+            travel_per_diem = self.receive_user_input("Enter travel per diem amount: ", "Enter a Decimal Value", Decimal)
+            daily_per_diem = self.receive_user_input("Enter daily per diem amount: ", "Enter a Decimal Value", Decimal)
         except UserQuitException as e:
             print (e.message)
             return
@@ -346,91 +343,68 @@ class TextUI:
         self.bank_has_been_modified = True
         return
 
-    def receive_date_user_input(self, prompt):
+    def receive_user_input(self, prompt, error_prompt, data_type):
         """
-        receives date data from user
-        Params: prompt: 1 - begin date, 2 - end date
-        Returns: date object
+        receives any type of data from user
+        Params:
+            prompt = prompt user sees to enter data
+            error_prompt = prompt user sees if bad data entered (needed int, but user entered String)
+            data_type = the type of data we want to receive
+        Returns: user entered data
         Raises:
-            ValueError if user enters invalid date
-            UserQuiteException if user wishes to cancel/quit
+            UserQuitException if user wishes to cancel/quit
         """
 
-        good_data = False # this value is True until we get good input from user
-        date_answer = datetime.date(1970, 1, 1)
+        # parameter integrity checks
+        valid_prompts = isinstance(prompt, str) and isinstance(error_prompt, str)
+        if not valid_prompts or not isinstance(data_type, type):
+            raise ValueError
+
+        good_data = False # this value is False until we get good input from user
+        data = 0 # this data type will change
 
         while not good_data:
             good_data = True  # assume we have good data unless we get an error
             try:
-                # multiple prompts depending on function parameter
-                if prompt == 1:
-                    user_input = input("Enter TDY start date [YYYYMMDD]: ")
-                elif prompt == 2:
-                    user_input = input("Enter TDY end date [YYYYMMDD]: ")
+                user_input = input(prompt) # receive input from user
 
                 if user_input == "q" or user_input == "c":  # This is the early exit option
                     raise UserQuitException("User cancel/quit detected")
-                date_answer = Accountant.convert_to_date(user_input)
-            except ValueError:
+
+                if data_type == datetime.date: # special case if requested data type is date
+                    data = datetime.date(int(user_input[:4]), int(user_input[4:6]), int(user_input[6:]))
+                else:
+                    data = data_type(user_input)
+            except (ValueError, InvalidOperation): # both cases where we got bad data (ex. string instead of date)
                 self.clear_screen()
-                print("Enter standard military date")
+                print(error_prompt)
                 good_data = False
 
-        return date_answer
-
-    def receive_dollar_user_input(self, prompt):
-        """
-        receives dollar data from user
-        Params: prompt: 1 - per diem amount, 2 - daily per diem amount
-        Returns: Decimal dolloar amount
-        Raises:
-            ValueError if user enters invalid Dollar amount
-            Decimal.invalidoperation error for invalid Decimal
-            UserQuiteException if user wishes to cancel/quit
-        """
-        good_data = False # this value is True until we get good input from user
-        per_diem = Decimal(0)
-
-        while not good_data:
-            good_data = True  # assume we have good data unless we get an error
-            try:
-                # multiple prompts depending on function parameter
-                if prompt == 1:
-                    user_input = input("Enter travel per diem amount: ")
-                elif prompt == 2:
-                    user_input = input("Enter daily per diem amount: ")
-
-                if user_input == "q" or user_input == "c":  # This is the early exit option
-                    raise UserQuitException("User cancel/quit detected")
-                per_diem = Decimal(user_input)
-            except (ValueError, InvalidOperation):
-                self.clear_screen()
-                print("Enter a Decimal Value")
-                good_data = False
-
-            return per_diem
-
+            return data
 
     def enter_new_transaction(self):
+        """
+        Allows user to input new transaction data and add transaction to bank
+        Params: none
+        Returns: none
+        Raises: none
+        Updated: 20171201
+        """
+
         self.clear_screen()
         bad_data = True
         transaction_amount = 0
         transaction_date = (0, 0, 0)
 
-        # receive date data
-        while bad_data:
-            bad_data = False
-            try:
-                temp = input("Enter transaction date [YYYYMMDD]: ")
-                transaction_date = Accountant.convert_to_date(temp)
-            except ValueError:
-                self.clear_screen()
-                bad_data = True
-                print("Enter a standard military date [YYYYMMDD]: ")
-                continue
+        # todo: finish function after receive_user_input works
+        # step 1: retrieve date
+        try:
+            transaction_date = self.receive_user_input("Enter transaction date ", "Enter standard military date", datetime.date) # prompt for transaction date
+        except UserQuitException as e:
+            print (e.message)
+            return
 
-
-        # receive transaction name
+        # step 2: retrieve name
         transaction_name = input("Enter transaction name: ")
 
         # receive transaction amount
