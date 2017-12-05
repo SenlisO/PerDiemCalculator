@@ -245,7 +245,7 @@ class TextUI:
 
             # user chooses to create a new transaction
             elif choice == 'n':
-                self.enter_new_transaction()
+                self.enter_transaction()
 
             # user chooses to page up
             elif choice == 'u':
@@ -274,7 +274,7 @@ class TextUI:
                 # user chooses to modify transaction
                 try:
                     transaction_number = int(choice)
-                    self.modify_transaction_menu(transaction_number)
+                    self.enter_transaction(transaction_number)
                 except ValueError as e:
                     # the last possibility is that the user entered an invalid choice
                     self.message = "Error: Invalid menu option"
@@ -382,10 +382,10 @@ class TextUI:
 
         return data
 
-    def enter_new_transaction(self):
+    def enter_transaction(self, transaction_number=0):
         """
         Allows user to input new transaction data and add transaction to bank
-        Params: none
+        Params: transaction_number=0: used to modify an existing transaction
         Returns: none
         Raises: none
         Updated: 20171201
@@ -398,7 +398,7 @@ class TextUI:
         transaction_date = (0, 0, 0)
 
         # step 1: retrieve data from user
-        try:
+        try:  # todo: when modifying transaction, show old values
             transaction_date = self.receive_user_input("Enter transaction date: ", "Enter standard military date: ", datetime.date) # prompt for transaction date
             transaction_name = self.receive_user_input("Enter transaction name: ", "Enter a name: ", str)
             transaction_amount = self.receive_user_input("Enter transaction amount: ", "Enter a Decimal amount: ", Decimal)
@@ -408,57 +408,16 @@ class TextUI:
             return
 
         try:
-            self.bill.add_transaction(transaction_name, transaction_date, transaction_amount, transaction_remarks)
+            if not transaction_number == 0:  # in this case, we want to modify a transaction
+                self.bill.modify_transaction(transaction_number, transaction_name, transaction_date,
+                                             transaction_amount, transaction_remarks)
+            else: # this is a new transaction
+                self.bill.add_transaction(transaction_name, transaction_date, transaction_amount, transaction_remarks)
+
         except InvalidOperationError as e:
             print(e.message) # todo: put this, and all other error messages, in message queue (others will be cleared off screen)
             return
 
         self.bank_has_been_modified = True # todo: why is this here instead of tracked by bank.  What is it's purpose
-        return
-
-    def modify_transaction_menu(self, transaction_number):
-        self.clear_screen()
-        bad_data = True
-        transaction_amount = 0
-        transaction_date = datetime.date(1950, 1, 1)
-
-        # receive date data
-        while bad_data:
-            bad_data = False
-            try:
-                temp = input("Enter transaction date [YYYYMMDD]: ")
-                transaction_date = Accountant.convert_to_date(temp)
-            except ValueError:
-                self.clear_screen()
-                bad_data = True
-                print("Enter a standard military date [YYYYMMDD]:")
-                continue
-
-        # receive transaction name
-        transaction_name = input("Enter transaction name: ")
-
-        # receive transaction amount
-        bad_data = True
-        while bad_data:
-            bad_data = False
-            try:
-                transaction_amount = float(input("Enter transaction amount: ")) # todo: change to decimal
-            except ValueError:
-                self.clear_screen()
-                bad_data = True
-                print("Enter a valid dollar amount")
-                continue
-
-        # enter transaction remarks
-        transaction_remarks = input("Enter transaction remarks: ")
-
-        try:
-            self.bill.modify_transaction(transaction_number, transaction_name, transaction_date,
-                                         transaction_amount, transaction_remarks)
-        except InvalidOperationError as e:
-            print(e.message)
-            return
-
-        self.bank_has_been_modified = True
         return
 

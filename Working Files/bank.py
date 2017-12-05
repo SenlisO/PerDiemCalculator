@@ -352,7 +352,7 @@ class Accountant:
             remarks_same = transaction.remarks == find_me.remarks
             
             if amount_same and date_same and amount_same and remarks_same:
-                if not result == -1: # case that we have alrbeady found the transaction
+                if not result == -1: # case that we have already found the transaction
                     raise InvalidOperationError("Error: duplicate transactions exist")
                 result = temp_index
                 temp_index += 1
@@ -411,9 +411,10 @@ class Accountant:
         Throws
             InvalidOperationError if transaction object index is out of range of current transaction array
         """
+        # todo: function testing
 
         # step 1: check that transaction index number is not out of array range
-        if len(self._transactions) <= transaction_number:
+        if len(self._transactions) < transaction_number:
             raise InvalidOperationError("transaction number out of range")
 
         # check for duplicate transaction
@@ -428,7 +429,7 @@ class Accountant:
         self._transactions.remove(self._transactions[transaction_number - 1])
 
         # Step 3: use bank's own add_transaction function to add transaction
-        self.add_transaction(new_transaction)
+        self.add_transaction(new_transaction) # todo: fix function call
 
         return self.find_transaction(new_transaction)
 
