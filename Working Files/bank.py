@@ -1,10 +1,13 @@
 from datetime import date, timedelta
-
+from decimal import *
 
 class InvalidOperationError(Exception):  # exception class
     def __init__(self, message):
         self.message = message
 
+class UserQuitException(Exception): # exception class
+    def __init__(self, message):
+        self.message = message
 
 class Accountant:
     # Class contains transaction and perdiem data and performs operations on them
@@ -147,8 +150,8 @@ class Accountant:
             end_date = date(int(temp[0:4]), int(temp[4:6]), int(temp[6:]))
 
 
-            travel_per_diem = float(file_data[2])
-            daily_per_diem = float(file_data[3])
+            travel_per_diem = Decimal(file_data[2])
+            daily_per_diem = Decimal(file_data[3])
 
             # step 5: set per diem and dates values in default TDY
             # todo: multiple TDY loading
@@ -169,7 +172,7 @@ class Accountant:
                 i += 1
 
                 # store transaction amount and increment index
-                amount = float(file_data[i])
+                amount = Decimal(file_data[i])
                 i += 1
 
                 # store transaction remarks and increment index
@@ -240,8 +243,8 @@ class Accountant:
             raise InvalidOperationError("Debug error: Bank.setperdiemdata: end date is <= to begin date")
 
         # step 2: sanitize per diem values
-        if not isinstance(travel_per_diem, float) or not isinstance(daily_per_diem, float):
-            raise InvalidOperationError("Debug error: Bank.setperdiemdata: per_diem data provided are not floats")
+        if not isinstance(travel_per_diem, Decimal) or not isinstance(daily_per_diem, Decimal):
+            raise InvalidOperationError("Debug error: Bank.setperdiemdata: per_diem data provided are not Decimal")
         if travel_per_diem < 0 or daily_per_diem < 0:
             raise InvalidOperationError("Debug error: Bank.setperdiemdata: per_diem data not valid")
 
@@ -451,10 +454,10 @@ class Transaction:
     def __init__(self, name, transaction_date, amount, remarks):
         # first step: sanitize input
         # todo: change InvalidOperationErrors to ValueErrors
-        if isinstance(amount, int): # if amount is an integer, we can convert it to a float
-            amount = float(amount)
+        if isinstance(amount, int): # if amount is an integer, we can convert it to a Decimal
+            amount = Decimal(amount)
         
-        if not isinstance(name, str) or not isinstance(amount, float) or not isinstance(remarks, str):
+        if not isinstance(name, str) or not isinstance(amount, Decimal) or not isinstance(remarks, str):
             raise InvalidOperationError("Debug error: Transaction init; values passed not valid type")
         if not isinstance(transaction_date, date):
             raise InvalidOperationError("Debug error: Transaction init; values passed not valid type")
@@ -480,21 +483,21 @@ class Trip:
     def set_per_diem(self, daily_per_diem, travel_per_diem):
         """
         Function used to set optional per diem values
-        parameters: float daily_per_diem and travel_per_diem
-        throws Value error if parameters are not floats
+        parameters: Decimal daily_per_diem and travel_per_diem
+        throws Value error if parameters are not Decimal
         returns: none
         """
-        # step 1: make sure per diem values provided to function are integers or float
-        if (not isinstance(daily_per_diem, float) and not isinstance(daily_per_diem, int)) or (not isinstance(travel_per_diem, float) and not isinstance(travel_per_diem, int)):
-            raise ValueError('Debug error: Trip.set_per_diem; values passed not float or int')
+        # step 1: make sure per diem values provided to function are integers or Decimal
+        if (not isinstance(daily_per_diem, Decimal) and not isinstance(daily_per_diem, int)) or (not isinstance(travel_per_diem, Decimal) and not isinstance(travel_per_diem, int)):
+            raise ValueError('Debug error: Trip.set_per_diem; values passed not Decimal or int')
              
         # step 2: make sure the per diem values provided to function make sense (not negative)
         if daily_per_diem < 0 or travel_per_diem < 0:
             raise ValueError('Debug error: Trip.set_per_diem; values passed must be positive')
 
-        # step 3: store per diem values as floats
-        self._daily_per_diem = float(daily_per_diem)
-        self._travel_per_diem = float(travel_per_diem)
+        # step 3: store per diem values as Decimals
+        self._daily_per_diem = Decimal(daily_per_diem)
+        self._travel_per_diem = Decimal(travel_per_diem)
 
     def set_dates(self, begin_date, end_date):
         """

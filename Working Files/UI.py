@@ -1,8 +1,9 @@
-import os
-import pdb
-from bank import Accountant, InvalidOperationError
 import datetime
+import os
 from random import randint
+from decimal import *
+
+from bank import Accountant, InvalidOperationError, UserQuitException
 
 # todo: Save successful message
 # todo: center on new/modified transaction functionality
@@ -16,10 +17,11 @@ class TextUI:
     def __init__(self, load):
         """
         GUI init method
-        args: 
+        Params:
             load -- controls whether function loads from ledger.txt
-        returns: none
-        raises: none
+        Returns: none
+        Raises: none
+        updated: 20171129
         """
 
         self.bill = Accountant()  # bill is our accountant.  He is the person we make all financial requests to
@@ -27,6 +29,7 @@ class TextUI:
         self.max_num_transactions_display = 20
         self.load_data = load  # controls whether the program loads from file automatically
         self.last_error = ""
+        getcontext().prec = 2 # function of decimal class to control decimal precision
 
 
     def page_up_down(self, is_up):
@@ -52,8 +55,7 @@ class TextUI:
 
         # store result in class attribute
         self.display_index = disp_indx
-        
-        
+
     def correct_display_index(self, display_index):
         """
         this method checks a display index and corrects for out of bounds issues
@@ -160,7 +162,6 @@ class TextUI:
                 else:
                     continue_asking = True
                     print ("Please enter y, n or c")
-        
 
     def display_main_menu(self):
         self.message = ""  # variable displays a message if not empty
@@ -298,15 +299,19 @@ class TextUI:
         # if bill is still not initialized, it is because the user chose to quit during enter_per_diem_data()
         if self.bill.trip_parameters_set():
             self.display_main_menu()
-        
-        
-    def enter_per_diem_data(self):
 
+    def enter_per_diem_data(self):
+        """
+        Singular function for entering or changing per diem amounts
+        Params: none
+        Returns: none
+        Raises: none
+        Updated: 20171129
+        """
         # step 1: function admin
         self.clear_screen()
-        bad_data = True
 
-        # step 2: if there is any errors, print them here
+        # step 2: if there is any errors stored from elsewhere in the program, print it here
         if self.last_error != "":
             print (self.last_error)
             self.last_error = ""
@@ -317,63 +322,18 @@ class TextUI:
         else: # case that this is the first time we are inputting per diem
             print ("Enter 'q' for any answer to quit program")
 
-        # step 4: asks user for start date and converts it to date object
-        while bad_data:
-            bad_data = False
-            try:
-                temp = input("Enter TDY start date [YYYYMMDD]: ")
-                if temp == "q" or temp == "c": #This is the early exit option
-                    return
-                begin_date = Accountant.convert_to_date(temp)
-            except ValueError:
-                self.clear_screen()
-                print("Enter standard military date [YYYYMMDD]: ")
-                bad_data = True
-
-        # step 5: asks user for ending date and converts it to date object
-        bad_data = True
-        while bad_data:
-            bad_data = False
-            try:
-                temp = input("Enter TDY end date [YYYYMMDD]: ")
-                if temp == "q" or temp == "c": #This is the early exit option
-                    return
-                end_date = Accountant.convert_to_date(temp)
-            except ValueError:
-                self.clear_screen()
-                print("Enter standard military date [YYYYMMDD]:")
-                bad_data = True
-
-        # step 6: asks user for per diem for travel date and checks that it is a float
-        bad_data = True
-        while bad_data:
-            bad_data = False
-            try:
-                temp = input("Enter travel per diem amount: ")
-                if temp == "q" or temp == "c": #This is the early exit option
-                    return
-                travel_per_diem = float(temp)
-            except ValueError:
-                self.clear_screen()
-                print("Enter an monetary value please")
-                bad_data = True
-
-        # step 7: asks user for per diem for normal days and checks that it is a float
-        bad_data = True
-        while bad_data:
-            bad_data = False
-            try:
-                temp = input("Enter daily per diem amount: ")
-                if temp == "q" or temp == "c": #This is the early exit option
-                    return
-                daily_per_diem = float(temp)
-            except ValueError:
-                self.clear_screen()
-                print("Enter an monetary value please")
-                bad_data = True
+        # step 4-7: retrieve user input
+        try:
+            begin_date = self.receive_user_input("Enter TDY start date [YYYYMMDD]: ", "Enter standard military date", datetime.date)
+            end_date = self.receive_user_input("Enter TDY end date [YYYYMMDD]: ", "Enter standard military date", datetime.date)
+            travel_per_diem = self.receive_user_input("Enter travel per diem amount: ", "Enter a Decimal Value", Decimal)
+            daily_per_diem = self.receive_user_input("Enter daily per diem amount: ", "Enter a Decimal Value", Decimal)
+        except UserQuitException as e:
+            print (e.message)
+            return
 
         # step 8: call Accountant object to set per diem values
-        try:
+        try: # todo: bank class accepts Decimal data types
             self.bill.set_per_diem_data(begin_date, end_date, travel_per_diem, daily_per_diem)
         except InvalidOperationError as e:
             self.clear_screen()
@@ -383,49 +343,77 @@ class TextUI:
         self.bank_has_been_modified = True
         return
 
+    def receive_user_input(self, prompt, error_prompt, data_type):
+        """
+        receives any type of data from user
+        Params:
+            prompt = prompt user sees to enter data
+            error_prompt = prompt user sees if bad data entered (needed int, but user entered String)
+            data_type = the type of data we want to receive
+        Returns: user entered data
+        Raises:
+            UserQuitException if user wishes to cancel/quit
+        """
+
+        # parameter integrity checks
+        valid_prompts = isinstance(prompt, str) and isinstance(error_prompt, str)
+        if not valid_prompts or not isinstance(data_type, type):
+            raise ValueError
+
+        good_data = False # this value is False until we get good input from user
+        data = 0 # this data type will change
+
+        while not good_data:
+            good_data = True  # assume we have good data unless we get an error
+            try:
+                user_input = input(prompt) # receive input from user
+
+                if user_input == "q" or user_input == "c":  # This is the early exit option
+                    raise UserQuitException("User cancel/quit detected")
+
+                if data_type == datetime.date: # special case if requested data type is date
+                    data = datetime.date(int(user_input[:4]), int(user_input[4:6]), int(user_input[6:]))
+                else:
+                    data = data_type(user_input)
+            except (ValueError, InvalidOperation): # both cases where we got bad data (ex. string instead of date)
+                self.clear_screen()
+                print(error_prompt)
+                good_data = False
+
+        return data
+
     def enter_new_transaction(self):
+        """
+        Allows user to input new transaction data and add transaction to bank
+        Params: none
+        Returns: none
+        Raises: none
+        Updated: 20171201
+        """
+        # todo: fold modify_transaction into this function
+
         self.clear_screen()
         bad_data = True
         transaction_amount = 0
         transaction_date = (0, 0, 0)
 
-        # receive date data
-        while bad_data:
-            bad_data = False
-            try:
-                temp = input("Enter transaction date [YYYYMMDD]: ")
-                transaction_date = Accountant.convert_to_date(temp)
-            except ValueError:
-                self.clear_screen()
-                bad_data = True
-                print("Enter a standard military date [YYYYMMDD]: ")
-                continue
-
-
-        # receive transaction name
-        transaction_name = input("Enter transaction name: ")
-
-        # receive transaction amount
-        bad_data = True
-        while bad_data:
-            bad_data = False
-            try:
-                transaction_amount = float(input("Enter transaction amount: "))
-            except ValueError:
-                self.clear_screen()
-                bad_data = True
-                print("Enter a valid dollar amount")
-
-        # enter transaction remarks
-        transaction_remarks = input("Enter transaction remarks: ")
+        # step 1: retrieve data from user
+        try:
+            transaction_date = self.receive_user_input("Enter transaction date: ", "Enter standard military date: ", datetime.date) # prompt for transaction date
+            transaction_name = self.receive_user_input("Enter transaction name: ", "Enter a name: ", str)
+            transaction_amount = self.receive_user_input("Enter transaction amount: ", "Enter a Decimal amount: ", Decimal)
+            transaction_remarks = self.receive_user_input("Enter transaction remarks: ", "Enter remarks: ", str)
+        except UserQuitException as e:
+            print (e.message)
+            return
 
         try:
             self.bill.add_transaction(transaction_name, transaction_date, transaction_amount, transaction_remarks)
         except InvalidOperationError as e:
-            print(e.message)
+            print(e.message) # todo: put this, and all other error messages, in message queue (others will be cleared off screen)
             return
 
-        self.bank_has_been_modified = True
+        self.bank_has_been_modified = True # todo: why is this here instead of tracked by bank.  What is it's purpose
         return
 
     def modify_transaction_menu(self, transaction_number):
@@ -454,7 +442,7 @@ class TextUI:
         while bad_data:
             bad_data = False
             try:
-                transaction_amount = float(input("Enter transaction amount: "))
+                transaction_amount = float(input("Enter transaction amount: ")) # todo: change to decimal
             except ValueError:
                 self.clear_screen()
                 bad_data = True
