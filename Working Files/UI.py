@@ -334,7 +334,7 @@ class TextUI:
 
         # step 8: call Accountant object to set per diem values
         try: # todo: bank class accepts Decimal data types
-            self.bill.set_per_diem_data(begin_date, end_date, float(travel_per_diem), float(daily_per_diem))
+            self.bill.set_per_diem_data(begin_date, end_date, travel_per_diem, daily_per_diem)
         except InvalidOperationError as e:
             self.clear_screen()
             print(e.message)
@@ -401,7 +401,7 @@ class TextUI:
         try:
             transaction_date = self.receive_user_input("Enter transaction date: ", "Enter standard military date: ", datetime.date) # prompt for transaction date
             transaction_name = self.receive_user_input("Enter transaction name: ", "Enter a name: ", str)
-            transaction_amount = self.receive_user_input("Enter transaction amount: ", "Enter a Decimal amount: ", float) # todo: replace with decimal
+            transaction_amount = self.receive_user_input("Enter transaction amount: ", "Enter a Decimal amount: ", Decimal)
             transaction_remarks = self.receive_user_input("Enter transaction remarks: ", "Enter remarks: ", str)
         except UserQuitException as e:
             print (e.message)
@@ -442,7 +442,7 @@ class TextUI:
         while bad_data:
             bad_data = False
             try:
-                transaction_amount = float(input("Enter transaction amount: "))
+                transaction_amount = float(input("Enter transaction amount: ")) # todo: change to decimal
             except ValueError:
                 self.clear_screen()
                 bad_data = True
