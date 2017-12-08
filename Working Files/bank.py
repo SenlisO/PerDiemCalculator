@@ -429,7 +429,7 @@ class Accountant:
         self._transactions.remove(self._transactions[transaction_number - 1])
 
         # Step 3: use bank's own add_transaction function to add transaction
-        self.add_transaction(new_transaction) # todo: fix function call
+        self.add_transaction(new_transaction.name, new_transaction.transaction_date, new_transaction.amount, new_transaction.remarks) 
 
         return self.find_transaction(new_transaction)
 
