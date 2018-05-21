@@ -8,6 +8,7 @@ TESTDATA = False  # default:False -- if true, test data is loaded
 Per Diem Calculator Tracker
 By Richard Romick
 '''
+# todo: reduce file size
 
 
 class InvalidOperationError(Exception):  # exception class
@@ -41,7 +42,7 @@ class Bank:
 
         return result
 
-    
+
     def __init__(self):
         self.begin_date = date(1950, 1, 1)  # begin date of travel, new years 1950 indicates no data
         self.end_date = date(1950, 1, 1)  # end date of travel, new years 1950 indicates no data
@@ -58,7 +59,7 @@ class Bank:
         self.daily_per_diem = 0
         self.transactions = []
 
-           
+
     def load_data(self):
         # function loads data from file ledger.txt
         try:
@@ -216,13 +217,13 @@ class Bank:
 
         # based on our previous checks, today must be on, or after, the first travel day
         total += self.travel_per_diem
-        
+
         # calculate how many days have transpired (not including the first travel day)
         time_spent = date.today() - self.begin_date
         # note: because of the way dates are subtracted, it will be short 1 day. In this function, that
         # missing day is treated as the first travel day, making the calculations work.
         days = time_spent.days
-        
+
         # multiple days by daily_per_diem and add to total
         total += (self.daily_per_diem * days)
 
@@ -434,8 +435,8 @@ class GUI:
         # if bank is still not initialized, it is because the user chose to quit during enter_per_diem_data()
         if self.bank.is_initialized():
             self.display_main_menu()
-        
-        
+
+
     def enter_per_diem_data(self):
 
         # function admin

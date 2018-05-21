@@ -1,5 +1,6 @@
 from datetime import date, timedelta
 from decimal import *
+import pdb
 
 class InvalidOperationError(Exception):  # exception class
     def __init__(self, message):
@@ -14,7 +15,7 @@ class Accountant:
 
     def __init__(self):
         self._transactions = []
-
+        self._tdy = Trip() # create Trip object with dummy values (values will be set later)
 
     def get_transaction_value(self, variable_name, transaction_index):
         """
@@ -47,6 +48,36 @@ class Accountant:
         else: # step 4: if none of the previous checks are correct, the caller isn't asking for a valid variable
             raise ValueError("Debug error: Accountant.get_transaction_value variable does not exist")
 
+    def get_trip_value(self, variable_name, trip_index=0):
+        """
+        This function is a one stop shop for necessary variable data
+        Input
+            variable_name - name of the variable caller wants a value for
+            possibilities include: "begin date", "end date" "daily per diem" "travel per diem"
+            trip_index = 0 - which trip the caller wants values for
+        Return
+            value of variable requested
+        Throws
+            value error if name is incorrect
+        """
+
+        # step 1: pull dictionary variable containing trip's values from Trip method
+        pulled_values = self._tdy.retrieve_values()
+
+        # step 2: determine what caller is asking for and return that value
+        try:
+            if variable_name == "begin date":
+                return pulled_values['begin_date']
+            elif variable_name == "end date":
+                return pulled_values['end_date']
+            elif variable_name == "daily per diem":
+                return pulled_values['daily_per_diem']
+            elif variable_name == "travel per diem":
+                return pulled_values['travel_per_diem']
+            else: # step 3: handle error scenarios
+                raise InvalidOperationError("Debug error: Accountant.get_trip_values: trip variable does not exist")
+        except InvalidOperationError as e:
+            raise e
 
     @staticmethod  # This means we can call the method without initializing an object
     def convert_to_date(d):
@@ -78,6 +109,18 @@ class Accountant:
         # step 5: return resulting date object
         return result
 
+    def trip_parameters_set(self):
+        """
+        Determines whether a trip's date and per diem values have been set
+        Input
+            none
+        Returns
+            answer - boolean value indicating whether the trip has values
+        Throws
+            none
+        """
+        # step 1: combine dates_set() and per_diem_values_set() with "and".  If either is false, method returns false.
+        return self._tdy.dates_set() and self._tdy.per_diem_values_set()
 
     def load_data(self):
         """
@@ -89,6 +132,7 @@ class Accountant:
         Throws
             Invalid operation error if ledger.txt is not found
         """
+        # todo: fix failed loading bug
 
         # step 1: open the file in read only mode
         try:
@@ -389,12 +433,14 @@ class Accountant:
         except InvalidOperationError as e:
             raise e
 
+        pdb.settrace()
         # Step 2: remove transaction with indicated transaction number
         self._transactions.remove(self._transactions[transaction_number - 1])
 
         # Step 3: use bank's own add_transaction function to add transaction
         self.add_transaction(new_transaction.name, new_transaction.transaction_date, new_transaction.amount, new_transaction.remarks)
 
+        pdb.set_trace()
         return self.find_transaction(new_transaction)
 
     def num_transactions(self):
@@ -424,8 +470,6 @@ class Transaction:
         self.remarks = remarks
 
 
-'''
-Removing trip class to be added back at a later date
 class Trip:
     # Class contains beginning and end dates of a trip, per diem info and calculations
     def __init__(self, begin_date = date(1950, 1, 1) , end_date = date(1950, 1, 1), daily_per_diem = -1, travel_per_diem = -1):
@@ -613,4 +657,3 @@ class Trip:
         total += (self._daily_per_diem * days)
 
         return total
-'''
