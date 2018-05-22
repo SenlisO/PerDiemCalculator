@@ -2,6 +2,56 @@ from datetime import date, timedelta
 from decimal import *
 import pdb
 
+"""
+Module construct
+---------------------
+class InvalidOperationError
+    custom build exception class that contains a message
+class UserQuitException
+    custom build exception class that contains a message
+class Accountant
+    Transaction _transactions[]
+    Trip _tdy
+
+    method __init__()
+    method get_transaction_value(variable_name, transaction_index)
+    method get_trip_value(variable_name)
+    static method convert_to_date(d)
+    method trip_parameters_set()
+    method load_data()
+    method save_data()
+    method set_per_diem_data(begin_date, end_date, travel_per_diem, daily_per_diem)
+    method calculate_trip_duration()
+    method calculate_per_diem_total()
+    method add_transaction(name, transaction_date, amount, remarks)
+    method find_transaction(find_me)
+    method calculate_total_spent()
+    method calculate_earned_per_diem()
+    method modify_transaction(transaction_number, name, transaction_date, amount, remarks)
+    method num_transactions()
+class Transaction
+    String name
+    Date transaction_date
+    Decimal amount
+    String remarks
+
+    method __init__(name, transaction_date, amount, remarks)
+class Trip
+    Date _begin_date
+    Date _end_date
+    Decimal _daily_per_diem
+    Devimal _travel_per_diem
+
+    method set_per_diem(daily_per_diem, travel_per_diem)
+    method set_dates(begin_date, end_date)
+    method retrieve_values()
+    method dates_set()
+    method per_diem_values_set()
+    method calculate_duration()
+    method calculate_per_diem_total()
+    method calculate_earned_per_diem()
+"""
+
 class InvalidOperationError(Exception):  # exception class
     def __init__(self, message):
         self.message = message
@@ -48,7 +98,7 @@ class Accountant:
         else: # step 4: if none of the previous checks are correct, the caller isn't asking for a valid variable
             raise ValueError("Debug error: Accountant.get_transaction_value variable does not exist")
 
-    def get_trip_value(self, variable_name, trip_index=0):
+    def get_trip_value(self, variable_name):
         """
         This function is a one stop shop for necessary variable data
         Input
@@ -111,13 +161,13 @@ class Accountant:
 
     def trip_parameters_set(self):
         """
-        Determines whether a trip's date and per diem values have been set
-        Input
-            none
-        Returns
-            answer - boolean value indicating whether the trip has values
-        Throws
-            none
+    Determines whether a trip's date and per diem values have been set
+    Input
+        none
+    Returns
+        answer - boolean value indicating whether the trip has values
+    Throws
+        none
         """
         # step 1: combine dates_set() and per_diem_values_set() with "and".  If either is false, method returns false.
         return self._tdy.dates_set() and self._tdy.per_diem_values_set()
@@ -334,7 +384,6 @@ class Accountant:
         except InvalidOperationError as e: # most likely a duplicate transaction
             raise e
 
-
     def find_transaction(self, find_me):
         """
         Finds a transaction and returns it's location in the list
@@ -368,7 +417,6 @@ class Accountant:
                 temp_index += 1
 
         return result
-
 
     def calculate_total_spent(self):
         """
@@ -468,7 +516,6 @@ class Transaction:
         self.transaction_date = transaction_date
         self.amount = amount
         self.remarks = remarks
-
 
 class Trip:
     # Class contains beginning and end dates of a trip, per diem info and calculations
