@@ -1,6 +1,6 @@
 from UI import TextUI
 
-load_data = False            # default:True -- if true,ledger.txt data is loaded
+load_data = True            # default:True -- if true,ledger.txt data is loaded
 test_data = False             # default:False -- if true, test data is loaded
 number_test_transactions = 40 # number of test transactions to create
 
