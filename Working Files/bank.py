@@ -473,22 +473,23 @@ class Accountant:
         if len(self._transactions) < transaction_number:
             raise InvalidOperationError("transaction number out of range")
 
-        # check for duplicate transaction
-        new_transaction = Transaction(name, transaction_date, amount, remarks)
+        # step 1.1: check for duplicate transaction
+        new_transaction = Transaction(name, transaction_date, amount, remarks) # this will throw an exception if duplicate
 
         try:
-            self.find_transaction(new_transaction)
+            self.find_transaction(new_transaction) # find where the current transaction is
         except InvalidOperationError as e:
             raise e
 
-        pdb.settrace()
-        # Step 2: remove transaction with indicated transaction number
+        # Step 2: remove old transaction
         self._transactions.remove(self._transactions[transaction_number - 1])
 
         # Step 3: use bank's own add_transaction function to add transaction
         self.add_transaction(new_transaction.name, new_transaction.transaction_date, new_transaction.amount, new_transaction.remarks)
 
-        pdb.set_trace()
+        # Step 4: sort with the new transactions
+        self._transactions = sorted(self._transactions, key=lambda Transaction: Transaction.transaction_date)
+
         return self.find_transaction(new_transaction)
 
     def num_transactions(self):
