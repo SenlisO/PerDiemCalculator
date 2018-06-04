@@ -182,7 +182,6 @@ class Accountant:
         Throws
             Invalid operation error if ledger.txt is not found
         """
-        # todo: fix failed loading bug
 
         # step 1: open the file in read only mode
         try:
@@ -213,7 +212,6 @@ class Accountant:
             daily_per_diem = Decimal(file_data[3])
 
             # step 5: set per diem and dates values in default TDY
-            # todo: multiple TDY loading
             self._tdy.set_per_diem(daily_per_diem, travel_per_diem)
             self._tdy.set_dates(begin_date, end_date)
 
